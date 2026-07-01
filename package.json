@@ -12,6 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "astro": "^7.0.4"
   }
 }
