@@ -1,0 +1,135 @@
+:root {
+	/* Colors */
+	--color-primary: #171717;
+	--color-on-primary: #ffffff;
+	--color-ink: #171717;
+	--color-body: #4d4d4d;
+	--color-mute: #888888;
+	--color-hairline: #ebebeb;
+	--color-hairline-strong: #a1a1a1;
+	--color-canvas: #ffffff;
+	--color-canvas-soft: #fafafa;
+	--color-canvas-soft-2: #f5f5f5;
+	--color-link: #0070f3;
+	--color-link-deep: #0761d1;
+	--color-link-bg-soft: #d3e5ff;
+	--color-success: #0070f3;
+	--color-error: #ee0000;
+	--color-error-soft: #f7d4d6;
+	--color-error-deep: #c50000;
+	--color-warning: #f5a623;
+	--color-warning-soft: #ffefcf;
+	--color-warning-deep: #ab570a;
+	--color-violet: #7928ca;
+	--color-cyan: #50e3c2;
+	--color-highlight-pink: #ff0080;
+	--color-gradient-develop-start: #007cf0;
+	--color-gradient-develop-end: #00dfd8;
+	--color-gradient-preview-start: #7928ca;
+	--color-gradient-preview-end: #ff0080;
+	--color-gradient-ship-start: #ff4d4d;
+	--color-gradient-ship-end: #f9cb28;
+	--color-selection-bg: #171717;
+	--color-selection-fg: #f2f2f2;
+
+	/* Spacing (4px base unit) */
+	--space-xxs: 4px;
+	--space-xs: 8px;
+	--space-sm: 12px;
+	--space-md: 16px;
+	--space-lg: 24px;
+	--space-xl: 32px;
+	--space-2xl: 40px;
+	--space-3xl: 48px;
+	--space-4xl: 64px;
+	--space-5xl: 96px;
+	--space-6xl: 128px;
+	--space-section: 192px;
+
+	/* Radius */
+	--radius-none: 0px;
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
+	--radius-pill-sm: 64px;
+	--radius-pill: 100px;
+	--radius-full: 9999px;
+
+	/* Typography */
+	--font-sans: var(--font-geist-sans, Inter, system-ui, -apple-system, sans-serif);
+	--font-mono: var(--font-geist-mono, 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace);
+
+	--text-display-xl-size: 48px;
+	--text-display-xl-weight: 600;
+	--text-display-xl-leading: 48px;
+	--text-display-xl-tracking: -2.4px;
+
+	--text-display-lg-size: 32px;
+	--text-display-lg-weight: 600;
+	--text-display-lg-leading: 40px;
+	--text-display-lg-tracking: -1.28px;
+
+	--text-display-md-size: 24px;
+	--text-display-md-weight: 600;
+	--text-display-md-leading: 32px;
+	--text-display-md-tracking: -0.96px;
+
+	--text-display-sm-size: 20px;
+	--text-display-sm-weight: 600;
+	--text-display-sm-leading: 28px;
+	--text-display-sm-tracking: -0.6px;
+
+	--text-body-lg-size: 18px;
+	--text-body-lg-weight: 400;
+	--text-body-lg-leading: 28px;
+
+	--text-body-md-size: 16px;
+	--text-body-md-weight: 400;
+	--text-body-md-leading: 24px;
+
+	--text-body-md-strong-size: 16px;
+	--text-body-md-strong-weight: 500;
+	--text-body-md-strong-leading: 24px;
+
+	--text-body-sm-size: 14px;
+	--text-body-sm-weight: 400;
+	--text-body-sm-leading: 20px;
+	--text-body-sm-tracking: -0.28px;
+
+	--text-body-sm-strong-size: 14px;
+	--text-body-sm-strong-weight: 500;
+	--text-body-sm-strong-leading: 20px;
+	--text-body-sm-strong-tracking: -0.28px;
+
+	--text-caption-size: 12px;
+	--text-caption-weight: 400;
+	--text-caption-leading: 16px;
+
+	--text-caption-mono-size: 12px;
+	--text-caption-mono-weight: 400;
+	--text-caption-mono-leading: 16px;
+
+	--text-code-size: 13px;
+	--text-code-weight: 400;
+	--text-code-leading: 20px;
+
+	--text-button-md-size: 14px;
+	--text-button-md-weight: 500;
+	--text-button-md-leading: 20px;
+
+	--text-button-lg-size: 16px;
+	--text-button-lg-weight: 500;
+	--text-button-lg-leading: 24px;
+
+	/* Elevation (stacked shadows + inset hairline) */
+	--shadow-level-1: inset 0 0 0 1px #00000014;
+	--shadow-level-2: 0px 1px 1px #00000005, 0px 2px 2px #0000000a, inset 0 0 0 1px #00000014;
+	--shadow-level-3: 0px 2px 2px #0000000a, 0px 8px 8px -8px #0000000a, inset 0 0 0 1px #00000014;
+	--shadow-level-4: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a, inset 0 0 0 1px #00000014;
+	--shadow-level-5: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, inset 0 0 0 1px #00000014;
+
+	/* Layout */
+	--content-max-width: 1400px;
+}
