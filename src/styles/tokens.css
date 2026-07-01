@@ -132,4 +132,39 @@
 
 	/* Layout */
 	--content-max-width: 1400px;
+
+	color-scheme: light;
+}
+
+[data-theme='dark'] {
+	--color-primary: #ffffff;
+	--color-on-primary: #171717;
+	--color-ink: #ededed;
+	--color-body: #a1a1a1;
+	--color-mute: #888888;
+	--color-hairline: #333333;
+	--color-hairline-strong: #666666;
+	--color-canvas: #000000;
+	--color-canvas-soft: #0a0a0a;
+	--color-canvas-soft-2: #141414;
+	--color-link: #3291ff;
+	--color-link-deep: #52a9ff;
+	--color-link-bg-soft: #0f3058;
+	--color-success: #3291ff;
+	--color-error: #f5514e;
+	--color-error-soft: #421c1f;
+	--color-error-deep: #ff6d6d;
+	--color-warning: #f7b955;
+	--color-warning-soft: #3a2e12;
+	--color-warning-deep: #ffcc66;
+	--color-selection-bg: #ededed;
+	--color-selection-fg: #171717;
+
+	--shadow-level-1: inset 0 0 0 1px #ffffff1a;
+	--shadow-level-2: 0px 1px 1px #00000030, 0px 2px 2px #00000030, inset 0 0 0 1px #ffffff1a;
+	--shadow-level-3: 0px 2px 2px #00000030, 0px 8px 8px -8px #00000030, inset 0 0 0 1px #ffffff1a;
+	--shadow-level-4: 0px 2px 2px #00000030, 0px 8px 16px -4px #00000030, inset 0 0 0 1px #ffffff1a;
+	--shadow-level-5: 0px 1px 1px #00000030, 0px 8px 16px -4px #00000030, 0px 24px 32px -8px #00000030, inset 0 0 0 1px #ffffff1a;
+
+	color-scheme: dark;
 }
