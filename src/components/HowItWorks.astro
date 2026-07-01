@@ -1,0 +1,80 @@
+---
+const steps = [
+	{ n: '01', title: 'Drop your file', body: 'Any image, video, or audio file — drag it in or click to browse.' },
+	{ n: '02', title: 'Pick a format', body: 'Choose from popular formats, or expand to see every format we support.' },
+	{ n: '03', title: 'Download', body: 'Your converted file downloads straight to your device. That’s it.' },
+];
+---
+
+<section id="how-it-works" class="how-it-works">
+	<div class="container">
+		<p class="eyebrow">How it works</p>
+		<h2 class="heading">Three steps. No account needed.</h2>
+		<div class="steps-grid">
+			{
+				steps.map((s) => (
+					<div class="step">
+						<span class="step-number">{s.n}</span>
+						<p class="step-title">{s.title}</p>
+						<p class="step-body">{s.body}</p>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.how-it-works {
+		background: var(--color-canvas-soft);
+		padding: var(--space-5xl) 0;
+	}
+
+	.eyebrow {
+		font-family: var(--font-mono);
+		font-size: var(--text-caption-mono-size);
+		color: var(--color-mute);
+		margin-bottom: var(--space-sm);
+	}
+
+	.heading {
+		font-size: var(--text-display-lg-size);
+		font-weight: var(--text-display-lg-weight);
+		line-height: var(--text-display-lg-leading);
+		letter-spacing: var(--text-display-lg-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-3xl);
+	}
+
+	.steps-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-xl);
+	}
+
+	.step-number {
+		font-family: var(--font-mono);
+		font-size: var(--text-caption-mono-size);
+		color: var(--color-mute);
+	}
+
+	.step-title {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+		margin: var(--space-xxs) 0 var(--space-xs);
+	}
+
+	.step-body {
+		font-size: var(--text-body-md-size);
+		color: var(--color-body);
+	}
+
+	@media (max-width: 959px) {
+		.steps-grid {
+			grid-template-columns: 1fr;
+			gap: var(--space-2xl);
+		}
+	}
+</style>

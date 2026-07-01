@@ -1,0 +1,27 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+	<div class="container footer-inner">
+		<span>© {year} Formart</span>
+		<span>Converted entirely on your device.</span>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		background: var(--color-canvas);
+		border-top: 1px solid var(--color-hairline);
+		padding: var(--space-xl) 0;
+	}
+
+	.footer-inner {
+		display: flex;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: var(--space-sm);
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+	}
+</style>

@@ -1,0 +1,81 @@
+---
+const faqs = [
+	{
+		q: 'Is this really private?',
+		a: 'Yes. Every conversion runs locally in your browser using WebAssembly. Your file is never uploaded to a server — we couldn’t see it even if we wanted to.',
+	},
+	{
+		q: 'Is there a file size limit?',
+		a: 'No artificial cap. The practical limit is your device’s memory and processing power, not a paywall.',
+	},
+	{
+		q: 'Which formats are supported?',
+		a: 'Popular image, video, and audio formats out of the box, with an expandable list covering many more. You can also extract audio directly from a video file.',
+	},
+	{
+		q: 'Do I need to sign up?',
+		a: 'No account, no email, no watermark on your output.',
+	},
+	{
+		q: 'Why is my first conversion a little slower?',
+		a: 'Image conversions are instant. For video and audio, the browser downloads a small conversion engine the first time you use it in a session, then reuses it for every conversion after that.',
+	},
+];
+---
+
+<section id="faq" class="faq">
+	<div class="container">
+		<h2 class="heading">Frequently asked questions</h2>
+		<div class="faq-list">
+			{
+				faqs.map((item) => (
+					<details class="faq-item">
+						<summary>{item.q}</summary>
+						<p>{item.a}</p>
+					</details>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.faq {
+		padding: var(--space-5xl) 0;
+	}
+
+	.heading {
+		font-size: var(--text-display-lg-size);
+		font-weight: var(--text-display-lg-weight);
+		line-height: var(--text-display-lg-leading);
+		letter-spacing: var(--text-display-lg-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-xl);
+	}
+
+	.faq-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		max-width: 720px;
+	}
+
+	.faq-item {
+		background: var(--color-canvas-soft);
+		border-radius: var(--radius-md);
+		padding: var(--space-md) var(--space-lg);
+	}
+
+	.faq-item summary {
+		font-size: var(--text-body-md-strong-size);
+		font-weight: var(--text-body-md-strong-weight);
+		color: var(--color-ink);
+		cursor: pointer;
+	}
+
+	.faq-item p {
+		font-size: var(--text-body-md-size);
+		color: var(--color-body);
+		margin-top: var(--space-sm);
+	}
+</style>

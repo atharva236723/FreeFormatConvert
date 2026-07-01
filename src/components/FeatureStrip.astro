@@ -1,0 +1,64 @@
+---
+const features = [
+	{ title: '100% private', body: 'Your files are converted on your own device. Nothing is ever uploaded anywhere.' },
+	{ title: 'Instant', body: 'No upload wait, no queue. Most conversions finish in seconds.' },
+	{ title: 'No limits', body: 'No file size caps, no sign-up, no daily quota.' },
+	{ title: 'No watermarks', body: 'What you convert is exactly what you get to keep.' },
+];
+---
+
+<section class="feature-strip">
+	<div class="container feature-grid">
+		{
+			features.map((f) => (
+				<div class="feature-card">
+					<p class="feature-title">{f.title}</p>
+					<p class="feature-body">{f.body}</p>
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.feature-strip {
+		padding: var(--space-4xl) 0;
+	}
+
+	.feature-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--space-md);
+	}
+
+	.feature-card {
+		background: var(--color-canvas);
+		border-radius: var(--radius-md);
+		padding: var(--space-lg);
+		box-shadow: var(--shadow-level-2);
+	}
+
+	.feature-title {
+		font-size: var(--text-body-md-strong-size);
+		font-weight: var(--text-body-md-strong-weight);
+		color: var(--color-ink);
+		margin-bottom: var(--space-xxs);
+	}
+
+	.feature-body {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+	}
+
+	@media (max-width: 959px) {
+		.feature-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 599px) {
+		.feature-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

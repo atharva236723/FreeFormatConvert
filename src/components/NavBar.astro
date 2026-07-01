@@ -1,0 +1,57 @@
+---
+---
+
+<header class="nav-bar">
+	<div class="container nav-inner">
+		<span class="logo">Formart</span>
+		<nav class="nav-links">
+			<a href="#how-it-works">How it works</a>
+			<a href="#faq">FAQ</a>
+		</nav>
+	</div>
+</header>
+
+<style>
+	.nav-bar {
+		background: var(--color-canvas);
+		border-bottom: 1px solid var(--color-hairline);
+	}
+
+	.nav-inner {
+		height: 64px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.logo {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+	}
+
+	.nav-links {
+		display: flex;
+		gap: var(--space-md);
+	}
+
+	.nav-links a {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+		text-decoration: none;
+		padding: var(--space-xs) var(--space-sm);
+		border-radius: var(--radius-full);
+	}
+
+	.nav-links a:hover {
+		background: var(--color-canvas-soft);
+		color: var(--color-ink);
+	}
+
+	@media (max-width: 599px) {
+		.nav-links {
+			display: none;
+		}
+	}
+</style>

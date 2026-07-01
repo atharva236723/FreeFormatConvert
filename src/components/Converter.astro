@@ -1,0 +1,319 @@
+---
+---
+
+<file-converter class="converter" data-state="idle">
+	<div class="dropzone" data-role="dropzone" tabindex="0" role="button" aria-label="Choose a file to convert. Drag and drop, or press to browse.">
+		<svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true" width="32" height="32">
+			<path
+				d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.6"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			></path>
+		</svg>
+		<p class="dropzone-title">Drop a file to convert</p>
+		<p class="dropzone-sub">or click to browse — images, video, and audio all work</p>
+		<input type="file" class="visually-hidden" data-role="file-input" aria-label="Choose a file" />
+	</div>
+
+	<div class="active-panel">
+		<div class="file-chip">
+			<span class="file-name" data-role="file-name"></span>
+			<span class="file-size" data-role="file-size"></span>
+			<button type="button" class="ghost-button" data-role="change-file">Change file</button>
+		</div>
+
+		<div class="stage stage-pick">
+			<p class="stage-label">Convert to</p>
+			<div class="format-grid" data-role="format-grid-popular"></div>
+
+			<div class="format-audio-group" data-role="format-group-audio" hidden>
+				<p class="stage-sublabel">Extract audio</p>
+				<div class="format-grid" data-role="format-grid-audio"></div>
+			</div>
+
+			<details class="format-more">
+				<summary>Show all formats</summary>
+				<div class="format-grid" data-role="format-grid-all"></div>
+			</details>
+
+			<button type="button" class="primary-button convert-button" data-role="convert-button" disabled>Convert</button>
+		</div>
+
+		<div class="stage stage-converting">
+			<p class="stage-label" data-role="progress-label">Converting…</p>
+			<div
+				class="progress-track"
+				role="progressbar"
+				aria-valuemin="0"
+				aria-valuemax="100"
+				aria-valuenow="0"
+				data-role="progress-track"
+			>
+				<div class="progress-fill" data-role="progress-fill"></div>
+			</div>
+		</div>
+
+		<div class="stage stage-done">
+			<p class="stage-label">Done</p>
+			<p class="done-meta" data-role="done-meta"></p>
+			<div class="stage-actions">
+				<a class="primary-button" data-role="download-link" download>Download</a>
+				<button type="button" class="ghost-button" data-role="reset-button">Convert another file</button>
+			</div>
+		</div>
+
+		<div class="stage stage-error" role="alert">
+			<p class="error-message" data-role="error-message"></p>
+			<button type="button" class="ghost-button" data-role="retry-button">Try a different format</button>
+		</div>
+	</div>
+
+	<div class="visually-hidden" role="status" aria-live="polite" data-role="status-announcer"></div>
+</file-converter>
+
+<script src="../scripts/converter-controller.ts"></script>
+
+<style>
+	.converter {
+		max-width: 640px;
+		margin-inline: auto;
+	}
+
+	.dropzone {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-xs);
+		text-align: center;
+		padding: var(--space-4xl) var(--space-xl);
+		border: 1.5px dashed var(--color-hairline-strong);
+		border-radius: var(--radius-xl);
+		background: var(--color-canvas);
+		color: var(--color-body);
+		cursor: pointer;
+		position: relative;
+		touch-action: manipulation;
+		transition: border-color 0.15s ease, background-color 0.15s ease;
+	}
+
+	.dropzone:hover,
+	.dropzone:focus-visible {
+		border-color: var(--color-ink);
+	}
+
+	file-converter[data-state='dragging'] .dropzone {
+		border-color: var(--color-link);
+		background: var(--color-link-bg-soft);
+	}
+
+	.dropzone-icon {
+		color: var(--color-ink);
+	}
+
+	.dropzone-title {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		line-height: var(--text-display-sm-leading);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+	}
+
+	.dropzone-sub {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-mute);
+	}
+
+	file-converter:not([data-state='idle']):not([data-state='dragging']) .dropzone {
+		display: none;
+	}
+
+	.active-panel {
+		display: none;
+		background: var(--color-canvas);
+		border-radius: var(--radius-lg);
+		padding: var(--space-xl);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	file-converter:not([data-state='idle']):not([data-state='dragging']) .active-panel {
+		display: block;
+	}
+
+	.file-chip {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding-bottom: var(--space-md);
+		margin-bottom: var(--space-lg);
+		border-bottom: 1px solid var(--color-hairline);
+	}
+
+	.file-name {
+		min-width: 0;
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-ink);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.file-size {
+		font-size: var(--text-caption-size);
+		color: var(--color-mute);
+		flex-shrink: 0;
+	}
+
+	.file-chip .ghost-button {
+		margin-left: auto;
+		flex-shrink: 0;
+	}
+
+	.stage {
+		display: none;
+	}
+
+	file-converter[data-state='file-selected'] .stage-pick {
+		display: block;
+	}
+	file-converter[data-state='converting'] .stage-converting {
+		display: block;
+	}
+	file-converter[data-state='done'] .stage-done {
+		display: block;
+	}
+	file-converter[data-state='error'] .stage-error {
+		display: block;
+	}
+
+	.stage-label {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-ink);
+		margin-bottom: var(--space-sm);
+	}
+
+	.stage-sublabel {
+		font-family: var(--font-mono);
+		font-size: var(--text-caption-mono-size);
+		color: var(--color-mute);
+		margin-bottom: var(--space-xs);
+	}
+
+	.format-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.format-audio-group {
+		margin-top: var(--space-md);
+	}
+
+	.format-chip {
+		touch-action: manipulation;
+		font-family: var(--font-sans);
+		font-size: var(--text-body-sm-size);
+		font-weight: var(--text-body-sm-weight);
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill-sm);
+		padding: var(--space-xs) var(--space-md);
+	}
+
+	.format-chip[aria-pressed='true'] {
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+		border-color: var(--color-primary);
+	}
+
+	.format-more {
+		margin-top: var(--space-md);
+	}
+
+	.format-more summary {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-link);
+		cursor: pointer;
+		width: fit-content;
+	}
+
+	.format-more .format-grid {
+		margin-top: var(--space-sm);
+	}
+
+	.primary-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-family: var(--font-sans);
+		font-size: var(--text-button-lg-size);
+		font-weight: var(--text-button-lg-weight);
+		line-height: var(--text-button-lg-leading);
+		color: var(--color-on-primary);
+		background: var(--color-primary);
+		border: none;
+		border-radius: var(--radius-pill);
+		padding: var(--space-sm) var(--space-lg);
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.primary-button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.convert-button {
+		margin-top: var(--space-xl);
+		width: 100%;
+	}
+
+	.ghost-button {
+		font-family: var(--font-sans);
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-sm);
+		padding: var(--space-xs) var(--space-sm);
+	}
+
+	.progress-track {
+		width: 100%;
+		height: 8px;
+		background: var(--color-hairline);
+		border-radius: var(--radius-full);
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		width: 0%;
+		background: var(--color-primary);
+		transition: width 0.2s ease;
+	}
+
+	.done-meta {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-mute);
+		margin-bottom: var(--space-lg);
+	}
+
+	.stage-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-md);
+	}
+
+	.error-message {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-error-deep);
+		margin-bottom: var(--space-md);
+	}
+</style>
