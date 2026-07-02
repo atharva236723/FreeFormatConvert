@@ -1,4 +1,4 @@
-export type ConversionErrorReason = 'unsupported-pair' | 'timeout' | 'engine-load-failed' | 'unknown';
+export type ConversionErrorReason = 'unsupported-pair' | 'timeout' | 'engine-load-failed' | 'file-too-large' | 'unknown';
 
 export class ConversionError extends Error {
 	reason: ConversionErrorReason;

@@ -3,7 +3,21 @@ import { ConversionError } from './errors';
 
 const CORE_VERSION = '0.12.10';
 const CORE_BASE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
-const CONVERT_TIMEOUT_MS = 180_000;
+
+/**
+ * Timeout scales with input size so a large-but-legitimately-slow conversion (e.g. a
+ * video near the 1GB cap) isn't killed mid-encode, while a small file that's genuinely
+ * stuck still fails fast instead of hanging for the full cap. Bounded at MAX so worst
+ * case is still "not very long" rather than unbounded.
+ */
+const BASE_TIMEOUT_MS = 60_000;
+const TIMEOUT_MS_PER_MB = 500;
+const MAX_TIMEOUT_MS = 600_000;
+
+function computeTimeoutMs(fileSizeBytes: number): number {
+	const sizeMB = fileSizeBytes / (1024 * 1024);
+	return Math.min(BASE_TIMEOUT_MS + sizeMB * TIMEOUT_MS_PER_MB, MAX_TIMEOUT_MS);
+}
 
 // Lazily typed — the real FFmpeg class only exists once @ffmpeg/ffmpeg is dynamically imported.
 type FFmpegInstance = InstanceType<typeof import('@ffmpeg/ffmpeg').FFmpeg>;
@@ -59,12 +73,12 @@ async function getFFmpeg(): Promise<FFmpegInstance> {
 	return loadPromise;
 }
 
-async function execWithTimeout(ffmpeg: FFmpegInstance, args: string[]): Promise<number | void> {
+async function execWithTimeout(ffmpeg: FFmpegInstance, args: string[], timeoutMs: number): Promise<number | void> {
 	let timeoutHandle: ReturnType<typeof setTimeout>;
 	const timeout = new Promise<never>((_, reject) => {
 		timeoutHandle = setTimeout(() => {
 			reject(new ConversionError('timeout', 'This conversion is taking too long — this format pair might not be supported.'));
-		}, CONVERT_TIMEOUT_MS);
+		}, timeoutMs);
 	});
 	try {
 		return await Promise.race([ffmpeg.exec(args), timeout]);
@@ -90,19 +104,35 @@ export async function transcode(file: File, targetExt: string, opts: TranscodeOp
 		const { fetchFile } = await import('@ffmpeg/util');
 		await ffmpeg.writeFile(inputName, await fetchFile(file));
 
+		const target = targetExt.toLowerCase();
 		const args = ['-i', inputName];
 		if (opts.extractAudioOnly) args.push('-vn');
+		// This core build's libvpx-vp9 encoder (ffmpeg's default codec for .webm) reliably
+		// crashes with a WASM "memory access out of bounds" fault, even on trivial input —
+		// a known upstream ffmpeg.wasm issue, not something fixable from the JS side. VP8
+		// (libvpx) encodes the same container correctly, so pin it explicitly for webm targets.
+		if (target === 'webm' && !opts.extractAudioOnly) args.push('-c:v', 'libvpx');
+		// H.264 (the default codec for these containers) requires even pixel dimensions and
+		// yuv420p for broad playback. Animated GIFs frequently have odd dimensions, so a naive
+		// GIF→MP4 would fail with "width/height not divisible by 2". Force both. The scale
+		// filter is a no-op when dimensions are already even.
+		if ((target === 'mp4' || target === 'mov' || target === 'm4v') && !opts.extractAudioOnly) {
+			args.push('-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', '-pix_fmt', 'yuv420p');
+		}
+		// Force the APNG muxer (not the single-frame PNG encoder the ".apng" extension would
+		// otherwise select) so every frame of an animated source is kept, and loop forever.
+		if (target === 'apng') args.push('-f', 'apng', '-plays', '0');
 		args.push(outputName);
 
 		currentProgressHandler = opts.onProgress ?? null;
 
 		let exitCode: number | void;
 		try {
-			exitCode = await execWithTimeout(ffmpeg, args);
+			exitCode = await execWithTimeout(ffmpeg, args, computeTimeoutMs(file.size));
 		} catch (err) {
-			if (err instanceof ConversionError && err.reason === 'timeout') {
-				await resetEngine();
-			}
+			// exec() only throws for a timeout race or a genuine engine-level fault (e.g. a WASM
+			// trap) — either way the cached instance can't be trusted for the next conversion.
+			await resetEngine();
 			throw err;
 		}
 
@@ -121,7 +151,7 @@ export async function transcode(file: File, targetExt: string, opts: TranscodeOp
 			throw new ConversionError('unsupported-pair', unsupportedMessage);
 		}
 
-		return new Blob([data], { type: findMimeForExt(targetExt) });
+		return new Blob([data as BlobPart], { type: findMimeForExt(targetExt) });
 	} finally {
 		currentProgressHandler = null;
 		try {

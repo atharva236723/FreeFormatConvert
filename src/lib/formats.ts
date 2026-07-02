@@ -1,4 +1,4 @@
-export type FileCategory = 'image' | 'audio' | 'video';
+export type FileCategory = 'image' | 'audio' | 'video' | 'document';
 
 export interface FormatDef {
 	/** lowercase extension, no leading dot */
@@ -32,6 +32,11 @@ export const IMAGE_FORMATS: FormatDef[] = [
 	{ ext: 'ppm', label: 'PPM', mime: 'image/x-portable-pixmap', category: 'image' },
 	{ ext: 'psd', label: 'PSD', mime: 'image/vnd.adobe.photoshop', category: 'image', inputOnly: true },
 	{ ext: 'pcx', label: 'PCX', mime: 'image/x-pcx', category: 'image' },
+	{ ext: 'apng', label: 'APNG', mime: 'image/apng', category: 'image' },
+	// JFIF is just a JPEG (same bytes, different extension), so the browser decodes it via
+	// createImageBitmap like any JPEG. Source-only: we'd never emit a `.jfif` when `.jpg` is
+	// the canonical name for identical output. Powers the popular "JFIF to PNG/JPG" conversions.
+	{ ext: 'jfif', label: 'JFIF', mime: 'image/jpeg', category: 'image', inputOnly: true },
 ];
 
 export const AUDIO_FORMATS: FormatDef[] = [
@@ -62,21 +67,71 @@ export const VIDEO_FORMATS: FormatDef[] = [
 	{ ext: '3gp', label: '3GP', mime: 'video/3gpp', category: 'video' },
 	{ ext: 'ogv', label: 'OGV', mime: 'video/ogg', category: 'video' },
 	{ ext: 'm4v', label: 'M4V', mime: 'video/x-m4v', category: 'video' },
+	// MPEG-TS / camcorder / DVD containers. Marked inputOnly: ffmpeg demuxes them reliably
+	// (so "MTS to MP4", "VOB to MP4", … all work), but we don't offer them as *targets* — the
+	// popular direction is always into a mainstream container, and muxing back out to these is
+	// both rarely wanted and less reliable in the wasm core.
+	{ ext: 'mts', label: 'MTS', mime: 'video/mp2t', category: 'video', inputOnly: true },
+	{ ext: 'm2ts', label: 'M2TS', mime: 'video/mp2t', category: 'video', inputOnly: true },
+	{ ext: 'ts', label: 'TS', mime: 'video/mp2t', category: 'video', inputOnly: true },
+	{ ext: 'vob', label: 'VOB', mime: 'video/mpeg', category: 'video', inputOnly: true },
+	{ ext: '3g2', label: '3G2', mime: 'video/3gpp2', category: 'video', inputOnly: true },
+	{ ext: 'f4v', label: 'F4V', mime: 'video/x-f4v', category: 'video', inputOnly: true },
 ];
 
-const ALL_FORMATS: FormatDef[] = [...IMAGE_FORMATS, ...AUDIO_FORMATS, ...VIDEO_FORMATS];
+/**
+ * Document formats are handled by documentEngine.ts (not Canvas/ffmpeg). Unlike media
+ * — where any pair within a category is offered — only a curated set of high-fidelity,
+ * fully client-side conversions is exposed (see `getDocumentOp` / documentEngine.ts for
+ * why the reverse directions like PDF→DOCX are deliberately excluded).
+ *
+ * `pdf` is both a source (PDF→image/Word/EPUB) and a target (DOCX→PDF, image→PDF, EPUB→PDF).
+ * `docx` is offered as a target only for PDF sources (see `getDocumentTargets`), so it's marked
+ * `inputOnly` to keep it out of the generic target loop; PDF→DOCX is text-only (see documentEngine).
+ * `epub` is both a source (EPUB→PDF) and a target (PDF→EPUB) — ebook conversions reflow to clean
+ * text rather than reproducing the source's exact layout.
+ */
+export const DOCUMENT_FORMATS: FormatDef[] = [
+	{ ext: 'pdf', label: 'PDF', mime: 'application/pdf', category: 'document', popular: true },
+	{
+		ext: 'docx',
+		label: 'Word (DOCX)',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		category: 'document',
+		popular: true,
+		inputOnly: true,
+	},
+	{ ext: 'epub', label: 'EPUB', mime: 'application/epub+zip', category: 'document', popular: true },
+];
+
+const ALL_FORMATS: FormatDef[] = [...IMAGE_FORMATS, ...AUDIO_FORMATS, ...VIDEO_FORMATS, ...DOCUMENT_FORMATS];
 
 const FORMATS_BY_CATEGORY: Record<FileCategory, FormatDef[]> = {
 	image: IMAGE_FORMATS,
 	audio: AUDIO_FORMATS,
 	video: VIDEO_FORMATS,
+	document: DOCUMENT_FORMATS,
+};
+
+/**
+ * Per-category upload caps. These exist to bound worst-case conversion time in the
+ * browser (single-threaded ffmpeg.wasm, no server to offload to) — not an artificial
+ * paywall. Video gets the largest allowance since that's the format users most often
+ * bring at real size; image/audio caps are generous relative to typical file sizes for
+ * those categories while keeping the ffmpeg timeout budget (see ffmpegEngine.ts) sane.
+ */
+export const MAX_FILE_SIZE_BYTES: Record<FileCategory, number> = {
+	image: 50 * 1024 * 1024, // 50 MB
+	audio: 300 * 1024 * 1024, // 300 MB
+	video: 1024 * 1024 * 1024, // 1 GB
+	document: 100 * 1024 * 1024, // 100 MB
 };
 
 /**
  * Formats the browser's `createImageBitmap` can reliably decode as a *source*.
  * Broader than the encodable set below — decoding is far more permissive than encoding.
  */
-const CANVAS_DECODABLE_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'avif']);
+const CANVAS_DECODABLE_EXTS = new Set(['jpg', 'jpeg', 'jfif', 'png', 'webp', 'gif', 'bmp', 'svg', 'avif']);
 
 /**
  * Formats `canvas.toBlob()` can actually *encode*. This is deliberately narrow: BMP and GIF
@@ -85,6 +140,21 @@ const CANVAS_DECODABLE_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp
  * Those (and anything else) must go through ffmpeg instead, which has real encoders for them.
  */
 const CANVAS_ENCODABLE_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp']);
+
+/**
+ * Image formats that carry animation. Their MIME type (`image/gif`, `image/apng`) means
+ * the browser classifies them as images, but they can legitimately be converted to *video*
+ * (MP4, WebM, …) — ffmpeg reads every frame. So for these sources we widen the target list
+ * to include video containers, which is why `gif-to-mp4` etc. are real, working conversions.
+ */
+const ANIMATED_IMAGE_EXTS = new Set(['gif', 'apng']);
+
+/**
+ * Image source extensions that can be packaged into a PDF. Broader than the Canvas-decodable
+ * set because `heic` is included: the browser can't decode HEIC via `createImageBitmap`, so
+ * documentEngine.ts decodes it with heic2any first, then flows it through the image→PDF path.
+ */
+const IMAGE_TO_PDF_SOURCES = new Set([...CANVAS_DECODABLE_EXTS, 'heic']);
 
 export function getExtension(filename: string): string {
 	const dot = filename.lastIndexOf('.');
@@ -118,9 +188,30 @@ export function findMimeForExt(ext: string): string {
  */
 export function getAvailableTargets(sourceCategory: FileCategory, sourceExt: string): TargetOption[] {
 	const ext = sourceExt.toLowerCase();
+
+	if (sourceCategory === 'document') return getDocumentTargets(ext);
+
 	const sameCategory: TargetOption[] = FORMATS_BY_CATEGORY[sourceCategory]
 		.filter((f) => !f.inputOnly && f.ext !== ext)
 		.map((f) => ({ ...f, group: 'convert' }));
+
+	// Any image we can rasterize can also be packaged into a PDF (handled by documentEngine, not
+	// Canvas/ffmpeg). Surfaced as a normal convert target alongside the image formats. Includes
+	// HEIC, which documentEngine decodes via heic2any before laying it onto the PDF page.
+	if (sourceCategory === 'image' && IMAGE_TO_PDF_SOURCES.has(ext)) {
+		const pdf = DOCUMENT_FORMATS.find((f) => f.ext === 'pdf')!;
+		sameCategory.push({ ...pdf, group: 'convert' });
+	}
+
+	// Animated images (GIF, APNG) can be turned into real video. ffmpeg preserves every
+	// frame, so offer the video containers as extra convert targets (e.g. GIF→MP4).
+	if (sourceCategory === 'image' && ANIMATED_IMAGE_EXTS.has(ext)) {
+		const already = new Set(sameCategory.map((t) => t.ext));
+		for (const video of VIDEO_FORMATS) {
+			if (video.inputOnly || video.ext === ext || already.has(video.ext)) continue;
+			sameCategory.push({ ...video, group: 'convert' });
+		}
+	}
 
 	if (sourceCategory !== 'video') return sameCategory;
 
@@ -132,6 +223,41 @@ export function getAvailableTargets(sourceCategory: FileCategory, sourceExt: str
 	return [...sameCategory, ...audioExtraction];
 }
 
+function getDocumentTargets(sourceExt: string): TargetOption[] {
+	if (sourceExt === 'pdf') {
+		// Rasterize each page to an image (JPG/PNG — the reliable, universally-decodable pair),
+		// extract text into an editable Word doc, or reflow text into an EPUB ebook.
+		const imageTargets = (['jpg', 'png'] as const).map((e) => IMAGE_FORMATS.find((f) => f.ext === e)!);
+		const docTargets = (['docx', 'epub'] as const).map((e) => DOCUMENT_FORMATS.find((f) => f.ext === e)!);
+		return [...imageTargets, ...docTargets].map((f) => ({ ...f, popular: true, group: 'convert' as const }));
+	}
+	if (sourceExt === 'docx' || sourceExt === 'epub') {
+		const pdf = DOCUMENT_FORMATS.find((f) => f.ext === 'pdf')!;
+		return [{ ...pdf, group: 'convert' }];
+	}
+	return [];
+}
+
+/**
+ * The high-fidelity, fully client-side document conversions handled by documentEngine.ts.
+ * Returns null for any pair that isn't one of them. PDF→DOCX/EPUB are text-only (they extract
+ * text and reflow it, losing the source's exact visual layout); PPTX→anything stays excluded
+ * (no reliable fully-client-side renderer).
+ */
+export type DocumentOp = 'docx-to-pdf' | 'pdf-to-image' | 'image-to-pdf' | 'pdf-to-docx' | 'pdf-to-epub' | 'epub-to-pdf';
+
+export function getDocumentOp(sourceExt: string, targetExt: string): DocumentOp | null {
+	const s = sourceExt.toLowerCase();
+	const t = targetExt.toLowerCase();
+	if (s === 'docx' && t === 'pdf') return 'docx-to-pdf';
+	if (s === 'epub' && t === 'pdf') return 'epub-to-pdf';
+	if (s === 'pdf' && (t === 'jpg' || t === 'jpeg' || t === 'png')) return 'pdf-to-image';
+	if (s === 'pdf' && t === 'docx') return 'pdf-to-docx';
+	if (s === 'pdf' && t === 'epub') return 'pdf-to-epub';
+	if (IMAGE_TO_PDF_SOURCES.has(s) && t === 'pdf') return 'image-to-pdf';
+	return null;
+}
+
 export function isFastPathPair(sourceExt: string, targetExt: string): boolean {
 	return CANVAS_DECODABLE_EXTS.has(sourceExt.toLowerCase()) && CANVAS_ENCODABLE_EXTS.has(targetExt.toLowerCase());
 }
@@ -141,5 +267,108 @@ export function formatBytes(bytes: number): string {
 	const units = ['B', 'KB', 'MB', 'GB'];
 	const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
 	const value = bytes / 1024 ** i;
-	return `${i === 0 ? value : value.toFixed(1)} ${units[i]}`;
+	return `${i === 0 ? value : value.toFixed(2)} ${units[i]}`;
+}
+
+/**
+ * Heading-friendly label: strips parentheticals so "GIF (animated)" → "GIF" and
+ * "Word (DOCX)" → "Word". Used for the `X to Y` copy on the per-conversion SEO pages.
+ */
+export function displayLabel(fmt: FormatDef): string {
+	return fmt.label.replace(/\s*\([^)]*\)\s*/g, '').trim();
+}
+
+/**
+ * One SEO landing page is generated per conversion pair (see `src/pages/[conversion].astro`).
+ * A pair is identified by its `slug` (`png-to-jpg`), which is also the route path.
+ */
+export interface ConversionPair {
+	slug: string;
+	sourceExt: string;
+	targetExt: string;
+	sourceLabel: string;
+	targetLabel: string;
+	sourceCategory: FileCategory;
+	targetCategory: FileCategory;
+	group: 'convert' | 'extract-audio';
+}
+
+/**
+ * Every valid (source → target) pair the converter can perform, one entry per unique
+ * slug. Built straight from `getAvailableTargets` so it stays in sync with the engines —
+ * add a format above and its pages appear automatically. `gif` lives in both the image and
+ * video lists; the image entry wins for any slug they share (e.g. `gif-to-png`), while the
+ * video entry contributes the video-only targets (`gif-to-mp4`, …). The actual file category
+ * is re-detected at run time from the uploaded file, so the winning category here only
+ * affects which "related conversions" we cross-link.
+ */
+export function getAllConversionPairs(): ConversionPair[] {
+	const seen = new Set<string>();
+	const pairs: ConversionPair[] = [];
+	for (const source of ALL_FORMATS) {
+		for (const target of getAvailableTargets(source.category, source.ext)) {
+			const slug = `${source.ext}-to-${target.ext}`;
+			if (seen.has(slug)) continue;
+			seen.add(slug);
+			pairs.push({
+				slug,
+				sourceExt: source.ext,
+				targetExt: target.ext,
+				sourceLabel: displayLabel(source),
+				targetLabel: displayLabel(target),
+				sourceCategory: source.category,
+				targetCategory: target.category,
+				group: target.group,
+			});
+		}
+	}
+	return pairs;
+}
+
+/** Other conversions from the same source format, for cross-linking on a landing page. */
+export function getRelatedPairs(pair: ConversionPair, limit = 8): ConversionPair[] {
+	return getAllConversionPairs()
+		.filter((p) => p.sourceExt === pair.sourceExt && p.slug !== pair.slug)
+		.slice(0, limit);
+}
+
+/**
+ * High-intent conversions surfaced on the homepage. Curated (not popularity-derived) —
+ * kept in search-demand order. Any slug not actually generated is filtered out, so this
+ * list can't produce dead links even if a format is later removed.
+ */
+const POPULAR_SLUGS = [
+	'png-to-jpg',
+	'jpg-to-png',
+	'heic-to-jpg',
+	'webp-to-png',
+	'webp-to-jpg',
+	'png-to-webp',
+	'mp4-to-mp3',
+	'mov-to-mp4',
+	'mkv-to-mp4',
+	'avi-to-mp4',
+	'webm-to-mp4',
+	'gif-to-mp4',
+	'mp4-to-gif',
+	'wav-to-mp3',
+	'flac-to-mp3',
+	'm4a-to-mp3',
+	'pdf-to-jpg',
+	'pdf-to-png',
+	'pdf-to-docx',
+	'pdf-to-epub',
+	'docx-to-pdf',
+	'epub-to-pdf',
+	'jpg-to-pdf',
+	'heic-to-pdf',
+	'png-to-ico',
+	'svg-to-png',
+];
+
+export function getPopularPairs(limit = 12): ConversionPair[] {
+	const bySlug = new Map(getAllConversionPairs().map((p) => [p.slug, p]));
+	return POPULAR_SLUGS.map((slug) => bySlug.get(slug))
+		.filter((p): p is ConversionPair => Boolean(p))
+		.slice(0, limit);
 }

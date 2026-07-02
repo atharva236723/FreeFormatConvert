@@ -1,7 +1,22 @@
 ---
+interface Props {
+	/** Pre-selected target extension (e.g. "jpg"). Auto-selects that format after upload. */
+	presetTarget?: string;
+	/** Display label for the source format, used only to tailor the dropzone copy. */
+	presetSourceLabel?: string;
+	/** Display label for the target format, used only to tailor the dropzone copy. */
+	presetTargetLabel?: string;
+}
+
+const { presetTarget, presetSourceLabel, presetTargetLabel } = Astro.props;
+
+const dropTitle = presetSourceLabel ? `Drop your ${presetSourceLabel} file` : 'Drop a file to convert';
+const dropSub = presetTargetLabel
+	? `or click to browse — we'll convert it to ${presetTargetLabel} on your device`
+	: 'or click to browse — images, video, audio, PDF & Word all work';
 ---
 
-<file-converter class="converter" data-state="idle">
+<file-converter class="converter" data-state="idle" data-preset-target={presetTarget}>
 	<div class="dropzone" data-role="dropzone" tabindex="0" role="button" aria-label="Choose a file to convert. Drag and drop, or press to browse.">
 		<svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true" width="32" height="32">
 			<path
@@ -13,8 +28,8 @@
 				stroke-linejoin="round"
 			></path>
 		</svg>
-		<p class="dropzone-title">Drop a file to convert</p>
-		<p class="dropzone-sub">or click to browse — images, video, and audio all work</p>
+		<p class="dropzone-title">{dropTitle}</p>
+		<p class="dropzone-sub">{dropSub}</p>
 		<input type="file" class="visually-hidden" data-role="file-input" aria-label="Choose a file" />
 	</div>
 
@@ -43,7 +58,15 @@
 		</div>
 
 		<div class="stage stage-converting">
+			<div class="loader-ring" data-role="loader-ring" style="--progress-ratio: 0">
+				<svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+					<circle class="ring-track" cx="60" cy="60" r="52"></circle>
+					<circle class="ring-fill" cx="60" cy="60" r="52"></circle>
+				</svg>
+				<span class="ring-percent" data-role="progress-percent">0%</span>
+			</div>
 			<p class="stage-label" data-role="progress-label">Converting…</p>
+			<p class="stage-sublabel converting-sublabel">Everything is happening on your device — nothing is uploaded.</p>
 			<div
 				class="progress-track"
 				role="progressbar"
@@ -57,10 +80,35 @@
 		</div>
 
 		<div class="stage stage-done">
+			<div class="success-badge" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="28" height="28">
+					<circle cx="12" cy="12" r="11" fill="var(--color-primary)"></circle>
+					<path
+						d="M7 12.5l3 3 7-7"
+						fill="none"
+						stroke="var(--color-on-primary)"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					></path>
+				</svg>
+			</div>
 			<p class="stage-label">Done</p>
 			<p class="done-meta" data-role="done-meta"></p>
 			<div class="stage-actions">
-				<a class="primary-button" data-role="download-link" download>Download</a>
+				<a class="download-button" data-role="download-link" download>
+					<svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+						<path
+							d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						></path>
+					</svg>
+					<span>Download file</span>
+				</a>
 				<button type="button" class="ghost-button" data-role="reset-button">Convert another file</button>
 			</div>
 		</div>
@@ -284,6 +332,60 @@
 		padding: var(--space-xs) var(--space-sm);
 	}
 
+	.stage-converting {
+		text-align: center;
+	}
+
+	.converting-sublabel {
+		margin-bottom: var(--space-lg);
+	}
+
+	.loader-ring {
+		position: relative;
+		width: 96px;
+		height: 96px;
+		margin: 0 auto var(--space-lg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.ring-svg {
+		width: 100%;
+		height: 100%;
+		animation: ring-spin 1.4s linear infinite;
+	}
+
+	.ring-track {
+		fill: none;
+		stroke: var(--color-hairline);
+		stroke-width: 6;
+	}
+
+	.ring-fill {
+		fill: none;
+		stroke: var(--color-primary);
+		stroke-width: 6;
+		stroke-linecap: round;
+		stroke-dasharray: 326.7;
+		stroke-dashoffset: calc(326.7 - 326.7 * var(--progress-ratio, 0));
+		transition: stroke-dashoffset 0.25s ease;
+	}
+
+	.ring-percent {
+		position: absolute;
+		font-family: var(--font-mono);
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+
+	@keyframes ring-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
 	.progress-track {
 		width: 100%;
 		height: 8px;
@@ -293,10 +395,46 @@
 	}
 
 	.progress-fill {
+		position: relative;
 		height: 100%;
 		width: 0%;
 		background: var(--color-primary);
+		border-radius: var(--radius-full);
+		overflow: hidden;
 		transition: width 0.2s ease;
+	}
+
+	.progress-fill::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: repeating-linear-gradient(45deg, #ffffff26 0 10px, transparent 10px 20px);
+		background-size: 28px 28px;
+		animation: progress-stripes 1s linear infinite;
+	}
+
+	@keyframes progress-stripes {
+		to {
+			background-position: 28px 0;
+		}
+	}
+
+	.success-badge {
+		display: flex;
+		justify-content: center;
+		margin-bottom: var(--space-md);
+		animation: success-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	@keyframes success-pop {
+		0% {
+			transform: scale(0);
+			opacity: 0;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 
 	.done-meta {
@@ -308,12 +446,70 @@
 	.stage-actions {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: var(--space-md);
+	}
+
+	.download-button {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
+		font-family: var(--font-sans);
+		font-size: var(--text-button-lg-size);
+		font-weight: var(--text-button-lg-weight);
+		line-height: var(--text-button-lg-leading);
+		color: var(--color-on-primary);
+		background: var(--color-primary);
+		border: none;
+		border-radius: var(--radius-pill);
+		padding: var(--space-sm) var(--space-lg);
+		text-decoration: none;
+		box-shadow: var(--shadow-level-3);
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.download-button:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-level-4);
+	}
+
+	.download-button:active {
+		transform: translateY(0);
+	}
+
+	.download-button .download-icon {
+		transition: transform 0.15s ease;
+	}
+
+	.download-button:hover .download-icon {
+		transform: translateY(2px);
 	}
 
 	.error-message {
 		font-size: var(--text-body-sm-size);
 		color: var(--color-error-deep);
 		margin-bottom: var(--space-md);
+	}
+
+	@media (max-width: 599px) {
+		.dropzone {
+			padding: var(--space-2xl) var(--space-md);
+		}
+
+		.active-panel {
+			padding: var(--space-lg);
+		}
+
+		.stage-actions {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.stage-actions .download-button,
+		.stage-actions .ghost-button {
+			justify-content: center;
+			text-align: center;
+			width: 100%;
+		}
 	}
 </style>

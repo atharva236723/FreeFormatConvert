@@ -1,4 +1,13 @@
-import { detectCategory, findFormat, getExtension, isFastPathPair, type FileCategory } from '../formats';
+import {
+	detectCategory,
+	findFormat,
+	formatBytes,
+	getDocumentOp,
+	getExtension,
+	isFastPathPair,
+	MAX_FILE_SIZE_BYTES,
+	type FileCategory,
+} from '../formats';
 import { convertImage } from './imageEngine';
 import { ConversionError } from './errors';
 
@@ -30,6 +39,14 @@ export async function convertFile(file: File, targetExt: string, opts: ConvertOp
 		throw new ConversionError('unsupported-pair', "We don't support that file type yet.");
 	}
 
+	const maxBytes = MAX_FILE_SIZE_BYTES[sourceCategory];
+	if (file.size > maxBytes) {
+		throw new ConversionError(
+			'file-too-large',
+			`${sourceCategory} files are limited to ${formatBytes(maxBytes)}. This file is ${formatBytes(file.size)}.`,
+		);
+	}
+
 	const sourceExt = getExtension(file.name);
 	let targetCategory: FileCategory = sourceCategory;
 	let extractAudioOnly = false;
@@ -39,7 +56,23 @@ export async function convertFile(file: File, targetExt: string, opts: ConvertOp
 		extractAudioOnly = true;
 	}
 
-	const filename = `${stripExtension(file.name)}.${targetExt}`;
+	const baseName = stripExtension(file.name);
+	const filename = `${baseName}.${targetExt}`;
+
+	// Document conversions (DOCX→PDF, PDF→image, image→PDF) run in their own lazily-loaded
+	// engine. Kept out of the static import graph for the same reason as ffmpegEngine — the
+	// PDF/DOCX libraries are heavy and shouldn't load until a document conversion is chosen.
+	const documentOp = getDocumentOp(sourceExt, targetExt);
+	if (documentOp) {
+		try {
+			const { convertDocument } = await import('./documentEngine');
+			return await convertDocument(file, documentOp, targetExt, baseName, { onProgress: opts.onProgress });
+		} catch (err) {
+			if (err instanceof ConversionError) throw err;
+			const message = err instanceof Error ? err.message : 'Something went wrong during conversion.';
+			throw new ConversionError('unknown', message);
+		}
+	}
 
 	try {
 		let blob: Blob;

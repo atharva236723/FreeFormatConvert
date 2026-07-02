@@ -3,6 +3,7 @@ import {
 	formatBytes,
 	getAvailableTargets,
 	getExtension,
+	MAX_FILE_SIZE_BYTES,
 	type TargetOption,
 } from '../lib/formats';
 import { ConversionError, convertFile } from '../lib/converter';
@@ -23,6 +24,8 @@ class FileConverter extends HTMLElement {
 	private progressTrack!: HTMLElement;
 	private progressFill!: HTMLElement;
 	private progressLabel!: HTMLElement;
+	private progressPercent!: HTMLElement;
+	private loaderRing!: HTMLElement;
 	private doneMeta!: HTMLElement;
 	private downloadLink!: HTMLAnchorElement;
 	private resetBtn!: HTMLButtonElement;
@@ -34,6 +37,7 @@ class FileConverter extends HTMLElement {
 	private selectedExt: string | null = null;
 	private objectUrl: string | null = null;
 	private dragCounter = 0;
+	private presetTarget: string | null = null;
 
 	connectedCallback() {
 		this.dropzone = this.query('[data-role="dropzone"]');
@@ -49,12 +53,16 @@ class FileConverter extends HTMLElement {
 		this.progressTrack = this.query('[data-role="progress-track"]');
 		this.progressFill = this.query('[data-role="progress-fill"]');
 		this.progressLabel = this.query('[data-role="progress-label"]');
+		this.progressPercent = this.query('[data-role="progress-percent"]');
+		this.loaderRing = this.query('[data-role="loader-ring"]');
 		this.doneMeta = this.query('[data-role="done-meta"]');
 		this.downloadLink = this.query<HTMLAnchorElement>('[data-role="download-link"]');
 		this.resetBtn = this.query<HTMLButtonElement>('[data-role="reset-button"]');
 		this.retryBtn = this.query<HTMLButtonElement>('[data-role="retry-button"]');
 		this.errorMessageEl = this.query('[data-role="error-message"]');
 		this.statusAnnouncer = this.query('[data-role="status-announcer"]');
+
+		this.presetTarget = this.dataset.presetTarget?.toLowerCase() || null;
 
 		this.wireEvents();
 	}
@@ -112,7 +120,16 @@ class FileConverter extends HTMLElement {
 		const category = detectCategory(file);
 		if (!category) {
 			this.currentFile = null;
-			this.showError("We don't support that file type yet. Try an image, video, or audio file.");
+			this.showError("We don't support that file type yet. Try an image, video, audio, PDF, or Word file.");
+			return;
+		}
+
+		const maxBytes = MAX_FILE_SIZE_BYTES[category];
+		if (file.size > maxBytes) {
+			this.currentFile = null;
+			this.showError(
+				`This ${category} file is ${formatBytes(file.size)} — ${category} files are limited to ${formatBytes(maxBytes)} so conversions stay fast. Try a smaller file.`,
+			);
 			return;
 		}
 
@@ -138,8 +155,26 @@ class FileConverter extends HTMLElement {
 		}
 
 		this.convertBtn.disabled = true;
-		this.announce(`${file.name} selected. Choose a format to convert to.`);
 		this.setState('file-selected');
+
+		// On a per-conversion landing page (e.g. /png-to-jpg) the target is known up front —
+		// auto-select it so the user only has to pick a file and hit Convert.
+		if (this.presetTarget && this.autoSelectTarget(this.presetTarget)) {
+			this.announce(`${file.name} selected. Ready to convert to ${this.presetTarget.toUpperCase()}.`);
+		} else {
+			this.announce(`${file.name} selected. Choose a format to convert to.`);
+		}
+	}
+
+	/** Selects the chip matching `ext` if the current file offers it. Returns whether it did. */
+	private autoSelectTarget(ext: string): boolean {
+		const chip = this.querySelector<HTMLButtonElement>(`.format-chip[data-ext="${ext}"]`);
+		if (!chip) return false;
+		// Reveal the collapsed "Show all formats" group if the target lives inside it.
+		const details = chip.closest('details.format-more');
+		if (details) (details as HTMLDetailsElement).open = true;
+		chip.click();
+		return true;
 	}
 
 	private renderGrid(container: HTMLElement, options: TargetOption[]) {
@@ -170,6 +205,8 @@ class FileConverter extends HTMLElement {
 		this.progressFill.style.width = '0%';
 		this.progressTrack.setAttribute('aria-valuenow', '0');
 		this.progressLabel.textContent = 'Converting…';
+		this.progressPercent.textContent = '0%';
+		this.loaderRing.style.setProperty('--progress-ratio', '0');
 		this.announce('Converting your file.');
 
 		try {
@@ -178,6 +215,8 @@ class FileConverter extends HTMLElement {
 					const percent = Math.round(ratio * 100);
 					this.progressFill.style.width = `${percent}%`;
 					this.progressTrack.setAttribute('aria-valuenow', String(percent));
+					this.progressPercent.textContent = `${percent}%`;
+					this.loaderRing.style.setProperty('--progress-ratio', String(ratio));
 				},
 			});
 
