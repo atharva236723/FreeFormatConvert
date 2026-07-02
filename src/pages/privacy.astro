@@ -1,0 +1,86 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const EFFECTIVE_DATE = 'July 1, 2026';
+---
+
+<Layout title="Privacy policy — Formart" description="How Formart handles (and mostly doesn't handle) your data.">
+	<NavBar />
+	<main>
+		<PageHeader title="Privacy policy" subtitle={`Effective ${EFFECTIVE_DATE}`} />
+		<section class="privacy-body">
+			<div class="container">
+				<div class="prose">
+					<p>
+						Formart is built so that there's as little to say in a privacy policy as possible. Here's exactly what
+						happens — and doesn't happen — to your data.
+					</p>
+
+					<h2>Your files</h2>
+					<p>
+						<strong>We never receive your files.</strong> Every conversion runs locally in your browser using the Canvas
+						API and WebAssembly (ffmpeg.wasm). Your file is read from disk into browser memory, converted, and offered
+						back to you as a download — it never travels over the network to any server we control. There is no upload
+						step in this product.
+					</p>
+
+					<h2>What we do load from the network</h2>
+					<p>
+						For video and audio conversions, your browser downloads a conversion engine (an open-source WebAssembly
+						build of ffmpeg, a few dozen megabytes) from a public CDN the first time you need it in a session. That
+						request contains no information about your file — it's just fetching program code, the same way loading
+						any other script on this page works. The CDN operator may log standard request metadata (like any web
+						request), but it never sees your file.
+					</p>
+
+					<h2>Analytics and cookies</h2>
+					<p>
+						Formart does not use tracking cookies and does not run third-party analytics that profile individual
+						visitors. Our hosting provider may keep standard, aggregate server access logs (e.g. request counts, response
+						times) for operating the site reliably — the same baseline logging any web host performs.
+					</p>
+
+					<h2>Local storage</h2>
+					<p>
+						We store one small preference in your browser's local storage: your light/dark theme choice. It never
+						leaves your device and contains no personal information.
+					</p>
+
+					<h2>Third parties</h2>
+					<p>
+						Because files are never uploaded, there's no third party that ever receives your file content, converted
+						output, or filenames. The only outbound request the Service makes is the one-time engine download described
+						above.
+					</p>
+
+					<h2>Children's privacy</h2>
+					<p>
+						The Service does not knowingly collect personal information from anyone, including children, because it
+						does not collect file content or account data from any user.
+					</p>
+
+					<h2>Changes to this policy</h2>
+					<p>
+						If this policy changes, we'll update the effective date above. Meaningful changes to how the Service
+						handles data will be reflected here first.
+					</p>
+
+					<h2>Contact</h2>
+					<p>
+						Questions about this policy? Reach out via our <a href="/contact">contact page</a>.
+					</p>
+				</div>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.privacy-body {
+		padding-bottom: var(--space-5xl);
+	}
+</style>

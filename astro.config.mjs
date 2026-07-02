@@ -3,6 +3,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://freeformatconvert.com',
 	fonts: [
 		{
 			provider: fontProviders.fontsource(),

@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Page not found — Formart" description="The page you're looking for doesn't exist.">
+	<NavBar />
+	<main>
+		<section class="error-page">
+			<div class="container error-inner">
+				<p class="error-code">404</p>
+				<h1 class="error-title">This page doesn't exist.</h1>
+				<p class="error-sub">The page you're looking for may have been moved, renamed, or never existed in the first place.</p>
+				<a href="/" class="button-primary">Back to home</a>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.error-page {
+		padding: var(--space-6xl) 0;
+	}
+
+	.error-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: var(--space-sm);
+	}
+
+	.error-code {
+		font-family: var(--font-mono);
+		font-size: var(--text-display-xl-size);
+		font-weight: var(--text-display-xl-weight);
+		color: var(--color-hairline-strong);
+	}
+
+	.error-title {
+		font-size: var(--text-display-lg-size);
+		font-weight: var(--text-display-lg-weight);
+		line-height: var(--text-display-lg-leading);
+		letter-spacing: var(--text-display-lg-tracking);
+		color: var(--color-ink);
+	}
+
+	.error-sub {
+		font-size: var(--text-body-lg-size);
+		color: var(--color-body);
+		max-width: 480px;
+		margin-bottom: var(--space-md);
+	}
+</style>

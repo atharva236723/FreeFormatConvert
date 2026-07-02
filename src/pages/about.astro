@@ -1,0 +1,108 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const values = [
+	{
+		title: 'Privacy by construction',
+		body: "There's no upload step because there's no server to upload to. Your files are read, converted, and downloaded entirely inside your browser tab — we never see them, and we couldn't if we wanted to.",
+	},
+	{
+		title: 'No account, no friction',
+		body: 'Converting a file shouldn’t require a login, a credit card, or an email address. Drop a file, pick a format, download the result.',
+	},
+	{
+		title: 'Built for real files',
+		body: 'Generous size limits and a wide format list, because a converter that only handles toy files isn’t actually useful.',
+	},
+];
+---
+
+<Layout
+	title="About us — Formart"
+	description="Formart is a browser-based file converter built on the idea that converting a file shouldn't require uploading it anywhere."
+>
+	<NavBar />
+	<main>
+		<PageHeader
+			title="A file converter that never sees your files."
+			subtitle="Formart runs entirely on your device. No uploads, no processing queue, no server in between."
+		/>
+		<section class="about-body">
+			<div class="container">
+				<div class="prose">
+					<p>
+						Most online converters work the same way: you upload your file to a server, wait in a queue, and download the
+						result once it's done. That means your file — photos, videos, voice memos, whatever it is — leaves your
+						device and sits on someone else's infrastructure, even if only for a few minutes.
+					</p>
+					<p>
+						Formart takes a different approach. Every conversion — image, audio, or video — runs locally in your browser
+						using WebAssembly and the Canvas API. Nothing is ever transmitted anywhere. The only network request Formart
+						ever makes is downloading its own conversion engine once per session, from a public CDN — never your file.
+					</p>
+				</div>
+
+				<div class="values-grid">
+					{
+						values.map((v) => (
+							<div class="value-card">
+								<p class="value-title">{v.title}</p>
+								<p class="value-body">{v.body}</p>
+							</div>
+						))
+					}
+				</div>
+
+				<a href="/" class="button-primary">Try the converter</a>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.about-body {
+		padding-bottom: var(--space-5xl);
+	}
+
+	.values-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-md);
+		margin: var(--space-2xl) 0 var(--space-2xl);
+	}
+
+	.value-card {
+		background: var(--color-canvas);
+		border-radius: var(--radius-md);
+		padding: var(--space-lg);
+		box-shadow: var(--shadow-level-2);
+	}
+
+	.value-title {
+		font-size: var(--text-body-md-strong-size);
+		font-weight: var(--text-body-md-strong-weight);
+		color: var(--color-ink);
+		margin-bottom: var(--space-xxs);
+	}
+
+	.value-body {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+	}
+
+	@media (max-width: 959px) {
+		.values-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 599px) {
+		.values-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

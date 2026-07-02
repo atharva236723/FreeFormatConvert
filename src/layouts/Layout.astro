@@ -5,12 +5,17 @@ import '../styles/global.css';
 interface Props {
 	title?: string;
 	description?: string;
+	/** Path (e.g. "/png-to-jpg") for the canonical + og:url tags. Defaults to the current page. */
+	canonical?: string;
 }
 
 const {
-	title = 'Formart — Convert any image, video, or audio file, privately',
-	description = 'Convert images, video, and audio between formats entirely in your browser. No uploads, no size limits, no sign-up.',
+	title = 'Free Format Convert — Convert any image, video, audio, PDF, or Word file, privately',
+	description = 'Convert images, video, audio, PDF, and Word files between formats entirely in your browser. No uploads, no size limits, no sign-up.',
+	canonical,
 } = Astro.props;
+
+const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -25,10 +30,21 @@ const {
 		</script>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<meta name="apple-mobile-web-app-title" content="Format" />
+		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL.href} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalURL.href} />
+		<meta name="twitter:card" content="summary" />
 		<Font cssVariable="--font-geist-sans" preload />
 		<Font cssVariable="--font-geist-mono" />
 	</head>

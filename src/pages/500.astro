@@ -1,0 +1,78 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Something went wrong — Formart" description="Something went wrong on our end.">
+	<NavBar />
+	<main>
+		<section class="error-page">
+			<div class="container error-inner">
+				<p class="error-code">500</p>
+				<h1 class="error-title">Something went wrong.</h1>
+				<p class="error-sub">
+					That's on us, not your file. Try refreshing the page — if it keeps happening, let us know what you were doing
+					when it broke.
+				</p>
+				<div class="error-actions">
+					<a href="/" class="button-primary">Back to home</a>
+					<a href="/contact" class="link-secondary">Report this issue</a>
+				</div>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.error-page {
+		padding: var(--space-6xl) 0;
+	}
+
+	.error-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: var(--space-sm);
+	}
+
+	.error-code {
+		font-family: var(--font-mono);
+		font-size: var(--text-display-xl-size);
+		font-weight: var(--text-display-xl-weight);
+		color: var(--color-hairline-strong);
+	}
+
+	.error-title {
+		font-size: var(--text-display-lg-size);
+		font-weight: var(--text-display-lg-weight);
+		line-height: var(--text-display-lg-leading);
+		letter-spacing: var(--text-display-lg-tracking);
+		color: var(--color-ink);
+	}
+
+	.error-sub {
+		font-size: var(--text-body-lg-size);
+		color: var(--color-body);
+		max-width: 480px;
+		margin-bottom: var(--space-md);
+	}
+
+	.error-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-lg);
+	}
+
+	.link-secondary {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-body);
+	}
+
+	.link-secondary:hover {
+		color: var(--color-ink);
+	}
+</style>

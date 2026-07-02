@@ -1,0 +1,146 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const CONTACT_EMAIL = 'hello@formart.app';
+---
+
+<Layout title="Contact us — Formart" description="Get in touch with the Formart team — questions, bug reports, and feedback welcome.">
+	<NavBar />
+	<main>
+		<PageHeader
+			title="Get in touch."
+			subtitle="Questions, bug reports, format requests — we read everything that comes in."
+		/>
+		<section class="contact-body">
+			<div class="container contact-grid">
+				<form class="contact-form" action={`mailto:${CONTACT_EMAIL}`} method="POST" enctype="text/plain">
+					<p class="form-note">Filling this out opens your email app with the message pre-filled — nothing is sent from this page.</p>
+					<label class="field">
+						<span class="field-label">Name</span>
+						<input class="field-input" type="text" name="name" required autocomplete="name" />
+					</label>
+					<label class="field">
+						<span class="field-label">Email</span>
+						<input class="field-input" type="email" name="email" required autocomplete="email" />
+					</label>
+					<label class="field">
+						<span class="field-label">Message</span>
+						<textarea class="field-input field-textarea" name="message" rows="5" required></textarea>
+					</label>
+					<button type="submit" class="button-primary">Send message</button>
+				</form>
+
+				<aside class="contact-aside">
+					<p class="aside-label">Prefer email?</p>
+					<a class="aside-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+					<p class="aside-note">We typically reply within a couple of business days.</p>
+				</aside>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.contact-body {
+		padding-bottom: var(--space-5xl);
+	}
+
+	.contact-grid {
+		display: grid;
+		grid-template-columns: 1.5fr 1fr;
+		gap: var(--space-2xl);
+		align-items: start;
+	}
+
+	.contact-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+		background: var(--color-canvas);
+		border-radius: var(--radius-lg);
+		padding: var(--space-xl);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	.form-note {
+		font-size: var(--text-caption-size);
+		color: var(--color-mute);
+		margin: 0 0 var(--space-xs);
+	}
+
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xxs);
+	}
+
+	.field-label {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-ink);
+	}
+
+	.field-input {
+		font-family: var(--font-sans);
+		font-size: var(--text-body-sm-size);
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-sm);
+		padding: 0 var(--space-sm);
+		height: 40px;
+	}
+
+	.field-textarea {
+		height: auto;
+		padding: var(--space-sm);
+		resize: vertical;
+		font-family: inherit;
+	}
+
+	.field-input:focus-visible {
+		outline: 2px solid var(--color-link);
+		outline-offset: 1px;
+	}
+
+	.contact-form .button-primary {
+		margin-top: var(--space-xs);
+		align-self: flex-start;
+	}
+
+	.contact-aside {
+		background: var(--color-canvas-soft);
+		border-radius: var(--radius-lg);
+		padding: var(--space-xl);
+	}
+
+	.aside-label {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-ink);
+		margin-bottom: var(--space-xs);
+	}
+
+	.aside-email {
+		display: block;
+		font-size: var(--text-body-md-size);
+		color: var(--color-link);
+		margin-bottom: var(--space-sm);
+		word-break: break-all;
+	}
+
+	.aside-note {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+	}
+
+	@media (max-width: 767px) {
+		.contact-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
