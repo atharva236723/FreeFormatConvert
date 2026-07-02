@@ -1,11 +1,22 @@
 ---
 const year = new Date().getFullYear();
+const links = [
+	{ href: '/about', label: 'About' },
+	{ href: '/contact', label: 'Contact' },
+	{ href: '/terms', label: 'Terms' },
+	{ href: '/privacy', label: 'Privacy' },
+];
 ---
 
 <footer class="footer">
 	<div class="container footer-inner">
-		<span>© {year} Formart</span>
-		<span>Converted entirely on your device.</span>
+		<nav class="footer-links" aria-label="Footer">
+			{links.map((link) => <a href={link.href}>{link.label}</a>)}
+		</nav>
+		<div class="footer-meta">
+			<span>© {year} Free Format Convert</span>
+			<span>Converted entirely on your device.</span>
+		</div>
 	</div>
 </footer>
 
@@ -19,9 +30,39 @@ const year = new Date().getFullYear();
 	.footer-inner {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		flex-wrap: wrap;
-		gap: var(--space-sm);
+		gap: var(--space-md);
+	}
+
+	.footer-links {
+		display: flex;
+		gap: var(--space-md);
+		flex-wrap: wrap;
+	}
+
+	.footer-links a {
 		font-size: var(--text-body-sm-size);
 		color: var(--color-body);
+		text-decoration: none;
+	}
+
+	.footer-links a:hover {
+		color: var(--color-ink);
+	}
+
+	.footer-meta {
+		display: flex;
+		gap: var(--space-md);
+		flex-wrap: wrap;
+		font-size: var(--text-body-sm-size);
+		color: var(--color-mute);
+	}
+
+	@media (max-width: 599px) {
+		.footer-inner {
+			flex-direction: column;
+			align-items: flex-start;
+		}
 	}
 </style>

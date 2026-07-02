@@ -1,0 +1,20 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+
+const related = [
+	{ slug: 'epub-to-pdf', label: 'EPUB to PDF' },
+	{ slug: 'pdf-to-epub', label: 'PDF to EPUB' },
+	{ slug: 'pdf-to-docx', label: 'PDF to Word' },
+	{ slug: 'docx-to-pdf', label: 'Word to PDF' },
+];
+---
+
+<ConversionLanding
+	title="Ebook Converter — EPUB & PDF | Free Format Convert"
+	description="Free online ebook converter. Convert EPUB to PDF and PDF to EPUB right in your browser — private, unlimited and never uploaded to a server."
+	canonical="/ebook-converter"
+	heading="Ebook Converter"
+	subtitle="Convert ebooks between EPUB and PDF, right on your device. No uploads, no sign-up — the text reflows into a clean, readable file."
+	relatedTitle="Ebook conversions"
+	related={related}
+/>

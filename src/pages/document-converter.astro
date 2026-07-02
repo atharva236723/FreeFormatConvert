@@ -1,0 +1,22 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+
+const related = [
+	{ slug: 'docx-to-pdf', label: 'Word to PDF' },
+	{ slug: 'pdf-to-docx', label: 'PDF to Word' },
+	{ slug: 'pdf-to-jpg', label: 'PDF to JPG' },
+	{ slug: 'jpg-to-pdf', label: 'JPG to PDF' },
+	{ slug: 'pdf-to-epub', label: 'PDF to EPUB' },
+	{ slug: 'epub-to-pdf', label: 'EPUB to PDF' },
+];
+---
+
+<ConversionLanding
+	title="Document Converter — Free & Private | Free Format Convert"
+	description="Free online document converter. Convert between PDF, Word (DOCX) and EPUB right in your browser — nothing is uploaded to a server."
+	canonical="/document-converter"
+	heading="Document Converter"
+	subtitle="Convert documents between PDF, Word and EPUB — instantly and privately. Your files are processed on your device and never leave it."
+	relatedTitle="Popular document conversions"
+	related={related}
+/>

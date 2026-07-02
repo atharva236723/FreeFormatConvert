@@ -1,0 +1,24 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+
+const related = [
+	{ slug: 'png-to-gif', label: 'PNG to GIF' },
+	{ slug: 'jpg-to-gif', label: 'JPG to GIF' },
+	{ slug: 'webp-to-gif', label: 'WebP to GIF' },
+	{ slug: 'bmp-to-gif', label: 'BMP to GIF' },
+	{ slug: 'apng-to-gif', label: 'APNG to GIF' },
+];
+---
+
+<ConversionLanding
+	title="Image to GIF Converter — Free & Private | Free Format Convert"
+	description="Convert an image to GIF online for free. PNG, JPG, WebP, BMP and APNG — turned into a GIF right in your browser, never uploaded."
+	canonical="/image-to-gif"
+	heading="Image to GIF Converter"
+	subtitle="Turn any image — PNG, JPG, WebP, BMP or APNG — into a GIF, right on your device. No uploads, no sign-up, no limits."
+	presetTarget="gif"
+	presetSourceLabel="image"
+	presetTargetLabel="GIF"
+	relatedTitle="Convert a specific image format"
+	related={related}
+/>

@@ -1,0 +1,138 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getAllConversionPairs, type FileCategory, type ConversionPair } from '../lib/formats';
+
+const pairs = getAllConversionPairs();
+
+// Grouped by the category of the file you start with. `gif` is classified as an image
+// source (see formats.ts), so GIF→video pairs live under Images — matching the picker.
+const SECTIONS: { key: FileCategory; label: string }[] = [
+	{ key: 'image', label: 'Image conversions' },
+	{ key: 'video', label: 'Video conversions' },
+	{ key: 'audio', label: 'Audio conversions' },
+	{ key: 'document', label: 'Document & ebook conversions' },
+];
+
+const groups = SECTIONS.map((section) => ({
+	...section,
+	items: pairs
+		.filter((p) => p.sourceCategory === section.key)
+		.sort((a, b) => a.slug.localeCompare(b.slug)),
+})).filter((group) => group.items.length > 0);
+
+const total = pairs.length;
+
+const label = (p: ConversionPair) => `${p.sourceLabel} to ${p.targetLabel}`;
+---
+
+<Layout
+	title="All conversions — Free Format Convert"
+	description="Browse every file conversion Free Format Convert supports — image, video, audio, PDF, Word and ebook formats, all converted privately in your browser."
+	canonical="/conversions"
+>
+	<NavBar />
+	<main>
+		<PageHeader
+			title="All conversions"
+			subtitle={`Every one of the ${total} conversions we support — image, video, audio and document formats, all converted privately on your device.`}
+		/>
+		<section class="conversions-body">
+			<div class="container">
+				<nav class="section-jump" aria-label="Jump to category">
+					{groups.map((group) => <a href={`#${group.key}`}>{group.label}</a>)}
+				</nav>
+				{
+					groups.map((group) => (
+						<section class="conversion-group" id={group.key}>
+							<h2 class="group-title">
+								{group.label} <span class="group-count">{group.items.length}</span>
+							</h2>
+							<ul class="conversion-grid">
+								{group.items.map((p) => (
+									<li>
+										<a href={`/${p.slug}`}>{label(p)}</a>
+									</li>
+								))}
+							</ul>
+						</section>
+					))
+				}
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.conversions-body {
+		padding-bottom: var(--space-5xl);
+	}
+
+	.section-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+		margin-bottom: var(--space-2xl);
+	}
+
+	.section-jump a {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+		text-decoration: none;
+		padding: var(--space-xs) var(--space-md);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-full);
+	}
+
+	.section-jump a:hover {
+		border-color: var(--color-ink);
+		color: var(--color-ink);
+	}
+
+	.conversion-group {
+		margin-bottom: var(--space-3xl);
+		scroll-margin-top: var(--space-lg);
+	}
+
+	.group-title {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-md);
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-xs);
+	}
+
+	.group-count {
+		font-size: var(--text-body-sm-size);
+		font-weight: var(--text-body-sm-weight);
+		color: var(--color-mute);
+	}
+
+	.conversion-grid {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+		gap: var(--space-xxs) var(--space-md);
+	}
+
+	.conversion-grid a {
+		display: block;
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+		text-decoration: none;
+		padding: var(--space-xs) 0;
+		border-bottom: 1px solid transparent;
+	}
+
+	.conversion-grid a:hover {
+		color: var(--color-link);
+	}
+</style>

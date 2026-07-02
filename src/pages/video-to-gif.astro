@@ -1,0 +1,24 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+
+const related = [
+	{ slug: 'mp4-to-gif', label: 'MP4 to GIF' },
+	{ slug: 'mov-to-gif', label: 'MOV to GIF' },
+	{ slug: 'webm-to-gif', label: 'WebM to GIF' },
+	{ slug: 'avi-to-gif', label: 'AVI to GIF' },
+	{ slug: 'mkv-to-gif', label: 'MKV to GIF' },
+];
+---
+
+<ConversionLanding
+	title="Video to GIF Converter — Free & Private | Free Format Convert"
+	description="Convert any video to an animated GIF online for free. MP4, MOV, WebM, AVI and more — turned into a GIF right in your browser, never uploaded."
+	canonical="/video-to-gif"
+	heading="Video to GIF Converter"
+	subtitle="Turn any video — MP4, MOV, WebM, AVI and more — into an animated GIF, right on your device. No uploads, no sign-up, no limits."
+	presetTarget="gif"
+	presetSourceLabel="video"
+	presetTargetLabel="GIF"
+	relatedTitle="Convert a specific video format"
+	related={related}
+/>

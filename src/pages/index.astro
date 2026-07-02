@@ -4,8 +4,10 @@ import NavBar from '../components/NavBar.astro';
 import Converter from '../components/Converter.astro';
 import FeatureStrip from '../components/FeatureStrip.astro';
 import HowItWorks from '../components/HowItWorks.astro';
-import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
+import { getPopularPairs } from '../lib/formats';
+
+const popular = getPopularPairs();
 ---
 
 <Layout>
@@ -14,13 +16,28 @@ import Footer from '../components/Footer.astro';
 		<section class="hero">
 			<div class="container hero-inner">
 				<h1 class="hero-title">Convert any file. Instantly. Privately.</h1>
-				<p class="hero-sub">Images, video, and audio — converted right on your device. Nothing is ever uploaded.</p>
+				<p class="hero-sub">Images, video, audio, PDF &amp; Word — converted right on your device. Nothing is ever uploaded.</p>
 				<Converter />
+			</div>
+		</section>
+		<section class="popular">
+			<div class="container">
+				<h2 class="popular-title">Popular conversions</h2>
+				<ul class="popular-grid">
+					{
+						popular.map((p) => (
+							<li>
+								<a class="popular-chip" href={`/${p.slug}`}>
+									{p.sourceLabel} to {p.targetLabel}
+								</a>
+							</li>
+						))
+					}
+				</ul>
 			</div>
 		</section>
 		<FeatureStrip />
 		<HowItWorks />
-		<Faq />
 	</main>
 	<Footer />
 </Layout>
@@ -48,6 +65,45 @@ import Footer from '../components/Footer.astro';
 		color: var(--color-body);
 		max-width: 560px;
 		margin: 0 auto var(--space-2xl);
+	}
+
+	.popular {
+		padding: 0 0 var(--space-4xl);
+	}
+
+	.popular-title {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-mute);
+		text-align: center;
+		margin-bottom: var(--space-md);
+	}
+
+	.popular-grid {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-xs);
+		list-style: none;
+		padding: 0;
+		max-width: 640px;
+		margin-inline: auto;
+	}
+
+	.popular-chip {
+		display: inline-flex;
+		font-size: var(--text-body-sm-size);
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill-sm);
+		padding: var(--space-xs) var(--space-md);
+		text-decoration: none;
+		transition: border-color 0.15s ease;
+	}
+
+	.popular-chip:hover {
+		border-color: var(--color-ink);
 	}
 
 	@media (max-width: 599px) {

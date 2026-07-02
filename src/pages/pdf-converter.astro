@@ -1,0 +1,24 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+
+const related = [
+	{ slug: 'pdf-to-docx', label: 'PDF to Word' },
+	{ slug: 'pdf-to-jpg', label: 'PDF to JPG' },
+	{ slug: 'pdf-to-png', label: 'PDF to PNG' },
+	{ slug: 'pdf-to-epub', label: 'PDF to EPUB' },
+	{ slug: 'docx-to-pdf', label: 'Word to PDF' },
+	{ slug: 'jpg-to-pdf', label: 'JPG to PDF' },
+	{ slug: 'png-to-pdf', label: 'PNG to PDF' },
+	{ slug: 'epub-to-pdf', label: 'EPUB to PDF' },
+];
+---
+
+<ConversionLanding
+	title="PDF Converter — Free & Private | Free Format Convert"
+	description="Convert PDFs and convert files to PDF, free and entirely in your browser. PDF to Word, JPG, PNG, EPUB — and Word, images & EPUB back to PDF. Files never leave your device."
+	canonical="/pdf-converter"
+	heading="PDF Converter"
+	subtitle="Turn PDFs into Word, images or EPUB — or turn Word docs, images and ebooks into PDF. Everything runs on your device: no uploads, no sign-up."
+	relatedTitle="Popular PDF conversions"
+	related={related}
+/>

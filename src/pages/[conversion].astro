@@ -1,0 +1,33 @@
+---
+import ConversionLanding from '../components/ConversionLanding.astro';
+import { getAllConversionPairs, getRelatedPairs, type ConversionPair } from '../lib/formats';
+
+export function getStaticPaths() {
+	return getAllConversionPairs().map((pair) => ({
+		params: { conversion: pair.slug },
+		props: { pair },
+	}));
+}
+
+interface Props {
+	pair: ConversionPair;
+}
+
+const { pair } = Astro.props;
+const { sourceLabel, targetLabel } = pair;
+
+const related = getRelatedPairs(pair).map((r) => ({ slug: r.slug, label: `${r.sourceLabel} to ${r.targetLabel}` }));
+---
+
+<ConversionLanding
+	title={`${sourceLabel} to ${targetLabel} Converter — Free & Private | Free Format Convert`}
+	description={`Convert ${sourceLabel} to ${targetLabel} online for free. Fast, private and unlimited — your files are converted right in your browser and never uploaded to a server.`}
+	canonical={`/${pair.slug}`}
+	heading={`${sourceLabel} to ${targetLabel} Converter`}
+	subtitle={`Turn your ${sourceLabel} files into ${targetLabel} instantly, right on your device. No uploads, no sign-up, no limits.`}
+	presetTarget={pair.targetExt}
+	presetSourceLabel={sourceLabel}
+	presetTargetLabel={targetLabel}
+	relatedTitle={`Other ${sourceLabel} conversions`}
+	related={related}
+/>

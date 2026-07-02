@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from './NavBar.astro';
+import Converter from './Converter.astro';
+import FeatureStrip from './FeatureStrip.astro';
+import HowItWorks from './HowItWorks.astro';
+import Footer from './Footer.astro';
+
+interface RelatedLink {
+	slug: string;
+	label: string;
+}
+
+interface Props {
+	title: string;
+	description: string;
+	canonical: string;
+	heading: string;
+	subtitle: string;
+	/**
+	 * Preset target for a specific conversion pair (e.g. "jpg" on /png-to-jpg). Omit on the
+	 * category hub pages (PDF / Document / Ebook converters), which show the general converter
+	 * with no format preselected so the visitor picks any supported target after uploading.
+	 */
+	presetTarget?: string;
+	presetSourceLabel?: string;
+	presetTargetLabel?: string;
+	relatedTitle?: string;
+	related?: RelatedLink[];
+}
+
+const {
+	title,
+	description,
+	canonical,
+	heading,
+	subtitle,
+	presetTarget,
+	presetSourceLabel,
+	presetTargetLabel,
+	relatedTitle,
+	related = [],
+} = Astro.props;
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+	<NavBar />
+	<main>
+		<section class="hero">
+			<div class="container hero-inner">
+				<h1 class="hero-title">{heading}</h1>
+				<p class="hero-sub">{subtitle}</p>
+				<Converter
+					presetTarget={presetTarget}
+					presetSourceLabel={presetSourceLabel}
+					presetTargetLabel={presetTargetLabel}
+				/>
+			</div>
+		</section>
+
+		{
+			related.length > 0 && (
+				<section class="related">
+					<div class="container">
+						<h2 class="related-title">{relatedTitle}</h2>
+						<ul class="related-grid">
+							{related.map((r) => (
+								<li>
+									<a class="related-chip" href={`/${r.slug}`}>
+										{r.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				</section>
+			)
+		}
+
+		<FeatureStrip />
+		<HowItWorks />
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.hero {
+		padding: var(--space-4xl) 0 var(--space-3xl);
+	}
+
+	.hero-inner {
+		text-align: center;
+	}
+
+	.hero-title {
+		font-size: var(--text-display-xl-size);
+		font-weight: var(--text-display-xl-weight);
+		line-height: var(--text-display-xl-leading);
+		letter-spacing: var(--text-display-xl-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-sm);
+	}
+
+	.hero-sub {
+		font-size: var(--text-body-lg-size);
+		color: var(--color-body);
+		max-width: 560px;
+		margin: 0 auto var(--space-2xl);
+	}
+
+	.related {
+		padding: 0 0 var(--space-4xl);
+	}
+
+	.related-title {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-mute);
+		text-align: center;
+		margin-bottom: var(--space-md);
+	}
+
+	.related-grid {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-xs);
+		list-style: none;
+		padding: 0;
+		max-width: 640px;
+		margin-inline: auto;
+	}
+
+	.related-chip {
+		display: inline-flex;
+		font-size: var(--text-body-sm-size);
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill-sm);
+		padding: var(--space-xs) var(--space-md);
+		text-decoration: none;
+		transition: border-color 0.15s ease;
+	}
+
+	.related-chip:hover {
+		border-color: var(--color-ink);
+	}
+
+	@media (max-width: 599px) {
+		.hero-title {
+			font-size: var(--text-display-lg-size);
+			line-height: var(--text-display-lg-leading);
+			letter-spacing: var(--text-display-lg-tracking);
+		}
+	}
+</style>
