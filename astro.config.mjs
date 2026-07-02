@@ -21,5 +21,14 @@ export default defineConfig({
 			styles: ['normal'],
 			fallbacks: ['monospace'],
 		},
+		{
+			// Display face for hero headings — geometric, distinctive, premium.
+			provider: fontProviders.fontsource(),
+			name: 'Space Grotesk',
+			cssVariable: '--font-space-grotesk',
+			weights: [500, 600, 700],
+			styles: ['normal'],
+			fallbacks: ['sans-serif'],
+		},
 	],
 });

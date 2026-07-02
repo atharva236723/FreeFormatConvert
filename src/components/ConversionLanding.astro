@@ -23,6 +23,9 @@ interface Props {
 	 * with no format preselected so the visitor picks any supported target after uploading.
 	 */
 	presetTarget?: string;
+	/** Expected source extension (e.g. "png" on /png-to-jpg) — only the exact-pair pages pass it,
+	 * enabling source-file validation. Category hubs omit it to keep the converter auto-detecting. */
+	presetSource?: string;
 	presetSourceLabel?: string;
 	presetTargetLabel?: string;
 	relatedTitle?: string;
@@ -36,25 +39,94 @@ const {
 	heading,
 	subtitle,
 	presetTarget,
+	presetSource,
 	presetSourceLabel,
 	presetTargetLabel,
 	relatedTitle,
 	related = [],
 } = Astro.props;
+
+// Pair pages pass both source + target labels; category hubs omit them. Only pair pages get the
+// per-conversion SEO copy, FAQ and structured data below.
+const isPair = Boolean(presetSourceLabel && presetTargetLabel);
+const src = presetSourceLabel ?? '';
+const tgt = presetTargetLabel ?? '';
+
+const faqs = isPair
+	? [
+			{
+				q: `How do I convert ${src} to ${tgt}?`,
+				a: `Drop your ${src} file into the converter above, make sure ${tgt} is selected as the output format, then click Convert. Your ${tgt} file downloads straight to your device — no upload, no sign-up, no email required.`,
+			},
+			{
+				q: `Is converting ${src} to ${tgt} free?`,
+				a: `Yes. Every ${src} to ${tgt} conversion is completely free, with no watermarks, no daily limits, and no account. Because the conversion runs in your browser, there is nothing to pay for.`,
+			},
+			{
+				q: `Are my ${src} files uploaded to a server?`,
+				a: `No. Your ${src} file never leaves your device — the conversion happens locally in your browser, so your files stay completely private.`,
+			},
+			{
+				q: `Is there a file size limit?`,
+				a: `The limits are generous — up to 50MB for images, 300MB for audio, 1GB for video, and 100MB for documents — enough for real files while keeping conversions fast in the browser.`,
+			},
+		]
+	: [];
+
+const faqStructuredData = isPair
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'FAQPage',
+			mainEntity: faqs.map((f) => ({
+				'@type': 'Question',
+				name: f.q,
+				acceptedAnswer: { '@type': 'Answer', text: f.a },
+			})),
+		}
+	: null;
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
+	{
+		faqStructuredData && (
+			<Fragment slot="head">
+				<script is:inline type="application/ld+json" set:html={JSON.stringify(faqStructuredData)} />
+			</Fragment>
+		)
+	}
 	<NavBar />
 	<main>
 		<section class="hero">
+			<div class="hero-bg" aria-hidden="true"></div>
 			<div class="container hero-inner">
+				<span class="hero-badge">
+					<span class="hero-badge-dot"></span>
+					100% private — converted in your browser, never uploaded
+				</span>
 				<h1 class="hero-title">{heading}</h1>
 				<p class="hero-sub">{subtitle}</p>
-				<Converter
-					presetTarget={presetTarget}
-					presetSourceLabel={presetSourceLabel}
-					presetTargetLabel={presetTargetLabel}
-				/>
+				<div class="hero-converter">
+					<Converter
+						presetTarget={presetTarget}
+						presetSource={presetSource}
+						presetSourceLabel={presetSourceLabel}
+						presetTargetLabel={presetTargetLabel}
+					/>
+				</div>
+				<ul class="hero-trust">
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						No sign-up
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						No watermarks
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						Unlimited &amp; free
+					</li>
+				</ul>
 			</div>
 		</section>
 
@@ -77,6 +149,47 @@ const {
 			)
 		}
 
+		{
+			isPair && (
+				<section class="seo-content">
+					<div class="container prose">
+						<h2>
+							How to convert {src} to {tgt}
+						</h2>
+						<p>
+							Converting {src} to {tgt} with Free Format Convert takes just a few seconds and happens entirely in
+							your browser. Add your {src} file using the converter above, confirm that {tgt} is the selected
+							output format, and click Convert. Your finished {tgt} file downloads straight to your device — no
+							software to install, no account to create, and nothing uploaded to a server.
+						</p>
+						<h2>
+							Why convert {src} to {tgt} here
+						</h2>
+						<p>
+							Unlike upload-based converters, Free Format Convert processes your {src} file locally, so your data
+							stays completely private and the conversion starts instantly — there is no queue and no waiting for a
+							file to travel to a server and back. It is free, unlimited, and watermark-free, making it a fast,
+							private way to turn {src} into {tgt} whenever you need it.
+						</p>
+					</div>
+				</section>
+				<section class="faq">
+					<div class="container">
+						<h2 class="faq-heading">
+							{src} to {tgt} — frequently asked questions
+						</h2>
+						<div class="faq-list">
+							{faqs.map((item) => (
+								<details class="faq-item">
+									<summary>{item.q}</summary>
+									<p>{item.a}</p>
+								</details>
+							))}
+						</div>
+					</div>
+				</section>
+			)
+		}
 		<FeatureStrip />
 		<HowItWorks />
 	</main>
@@ -84,32 +197,201 @@ const {
 </Layout>
 
 <style>
+	.seo-content {
+		padding: var(--space-4xl) 0 var(--space-2xl);
+	}
+
+	.seo-content .prose {
+		margin-inline: auto;
+	}
+
+	.faq {
+		padding: 0 0 var(--space-5xl);
+	}
+
+	.faq-heading {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		line-height: var(--text-display-sm-leading);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-xl);
+		text-align: center;
+	}
+
+	.faq-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		max-width: 720px;
+		margin-inline: auto;
+	}
+
+	.faq-item {
+		background: var(--color-canvas-soft);
+		border-radius: var(--radius-md);
+		padding: var(--space-md) var(--space-lg);
+	}
+
+	.faq-item summary {
+		font-size: var(--text-body-md-strong-size);
+		font-weight: var(--text-body-md-strong-weight);
+		color: var(--color-ink);
+		cursor: pointer;
+	}
+
+	.faq-item p {
+		font-size: var(--text-body-md-size);
+		color: var(--color-body);
+		margin-top: var(--space-sm);
+	}
+
 	.hero {
-		padding: var(--space-4xl) 0 var(--space-3xl);
+		position: relative;
+		isolation: isolate;
+		padding: var(--space-5xl) 0 var(--space-3xl);
+	}
+
+	/* Ambient premium backdrop: soft gradient bloom + a faded grid that
+	   fans out behind the hero. Purely decorative, works in both themes. */
+	.hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.hero-bg::before {
+		content: '';
+		position: absolute;
+		top: -320px;
+		left: 50%;
+		width: min(1200px, 130%);
+		height: 760px;
+		transform: translateX(-50%);
+		background:
+			radial-gradient(38% 56% at 28% 42%, rgba(0, 124, 240, 0.28), transparent 70%),
+			radial-gradient(42% 56% at 72% 44%, rgba(121, 40, 202, 0.24), transparent 70%),
+			radial-gradient(36% 46% at 50% 68%, rgba(0, 223, 216, 0.22), transparent 70%);
+		filter: blur(56px);
+		opacity: 0.85;
+	}
+
+	:global(html[data-theme='dark']) .hero-bg::before {
+		opacity: 1;
 	}
 
 	.hero-inner {
 		text-align: center;
 	}
 
+	.hero-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
+		font-size: var(--text-body-sm-size);
+		font-weight: 500;
+		color: var(--color-body);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill);
+		padding: 6px 14px 6px 12px;
+		margin-bottom: var(--space-lg);
+		box-shadow: var(--shadow-level-2);
+	}
+
+	.hero-badge-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-success);
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
+		animation: badge-pulse 2.4s ease-out infinite;
+	}
+
+	@keyframes badge-pulse {
+		0% {
+			box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
+		}
+		70%,
+		100% {
+			box-shadow: 0 0 0 6px transparent;
+		}
+	}
+
 	.hero-title {
-		font-size: var(--text-display-xl-size);
-		font-weight: var(--text-display-xl-weight);
-		line-height: var(--text-display-xl-leading);
-		letter-spacing: var(--text-display-xl-tracking);
-		color: var(--color-ink);
-		margin-bottom: var(--space-sm);
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 4.8vw, 3.4rem);
+		font-weight: 700;
+		line-height: 1.06;
+		letter-spacing: -0.03em;
+		margin-bottom: var(--space-md);
+		text-wrap: balance;
+		background: linear-gradient(
+			100deg,
+			var(--color-gradient-develop-start) 0%,
+			var(--color-gradient-develop-end) 26%,
+			var(--color-gradient-preview-start) 52%,
+			var(--color-highlight-pink) 74%,
+			var(--color-gradient-develop-start) 100%
+		);
+		background-size: 200% auto;
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		animation: gradient-pan 8s linear infinite;
+	}
+
+	/* Shift by exactly one full gradient tile (200%) so the loop is seamless —
+	   the gradient's first and last stops are the same colour. */
+	@keyframes gradient-pan {
+		from {
+			background-position: 0% center;
+		}
+		to {
+			background-position: 200% center;
+		}
 	}
 
 	.hero-sub {
 		font-size: var(--text-body-lg-size);
+		line-height: 1.6;
 		color: var(--color-body);
-		max-width: 560px;
+		max-width: 580px;
 		margin: 0 auto var(--space-2xl);
 	}
 
+	.hero-converter {
+		position: relative;
+	}
+
+	.hero-trust {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-md) var(--space-lg);
+		list-style: none;
+		padding: 0;
+		margin: var(--space-xl) 0 0;
+	}
+
+	.hero-trust li {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: var(--text-body-sm-size);
+		font-weight: 500;
+		color: var(--color-mute);
+	}
+
+	.hero-trust svg {
+		color: var(--color-success);
+	}
+
 	.related {
-		padding: 0 0 var(--space-4xl);
+		padding: var(--space-2xl) 0 var(--space-4xl);
 	}
 
 	.related-title {
@@ -127,31 +409,38 @@ const {
 		gap: var(--space-xs);
 		list-style: none;
 		padding: 0;
-		max-width: 640px;
+		max-width: 680px;
 		margin-inline: auto;
 	}
 
 	.related-chip {
 		display: inline-flex;
+		align-items: center;
 		font-size: var(--text-body-sm-size);
+		font-weight: 500;
 		color: var(--color-ink);
 		background: var(--color-canvas);
 		border: 1px solid var(--color-hairline);
 		border-radius: var(--radius-pill-sm);
 		padding: var(--space-xs) var(--space-md);
 		text-decoration: none;
-		transition: border-color 0.15s ease;
+		box-shadow: var(--shadow-level-1);
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 	}
 
 	.related-chip:hover {
-		border-color: var(--color-ink);
+		border-color: var(--color-hairline-strong);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-level-3);
 	}
 
 	@media (max-width: 599px) {
-		.hero-title {
-			font-size: var(--text-display-lg-size);
-			line-height: var(--text-display-lg-leading);
-			letter-spacing: var(--text-display-lg-tracking);
+		.hero {
+			padding: var(--space-3xl) 0 var(--space-2xl);
+		}
+
+		.hero-sub {
+			font-size: var(--text-body-md-size);
 		}
 	}
 </style>

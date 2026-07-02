@@ -24,7 +24,9 @@ export const IMAGE_FORMATS: FormatDef[] = [
 	{ ext: 'bmp', label: 'BMP', mime: 'image/bmp', category: 'image', popular: true },
 	{ ext: 'tiff', label: 'TIFF', mime: 'image/tiff', category: 'image' },
 	{ ext: 'ico', label: 'ICO', mime: 'image/x-icon', category: 'image' },
-	{ ext: 'avif', label: 'AVIF', mime: 'image/avif', category: 'image' },
+	// inputOnly: the browser decodes AVIF via createImageBitmap (so AVIF→JPG/PNG/… work), but
+	// the ffmpeg wasm core has no AV1 encoder — a `.avif` target aborts with "encoder … disabled".
+	{ ext: 'avif', label: 'AVIF', mime: 'image/avif', category: 'image', inputOnly: true },
 	{ ext: 'heic', label: 'HEIC', mime: 'image/heic', category: 'image', inputOnly: true },
 	{ ext: 'svg', label: 'SVG', mime: 'image/svg+xml', category: 'image', inputOnly: true },
 	{ ext: 'jp2', label: 'JPEG 2000', mime: 'image/jp2', category: 'image' },
@@ -47,10 +49,15 @@ export const AUDIO_FORMATS: FormatDef[] = [
 	{ ext: 'flac', label: 'FLAC', mime: 'audio/flac', category: 'audio', popular: true },
 	{ ext: 'm4a', label: 'M4A', mime: 'audio/mp4', category: 'audio', popular: true },
 	{ ext: 'wma', label: 'WMA', mime: 'audio/x-ms-wma', category: 'audio' },
-	{ ext: 'opus', label: 'Opus', mime: 'audio/opus', category: 'audio' },
+	// These three are inputOnly: the ffmpeg wasm core can decode them (so Opus/ALAC/AMR → MP3/…
+	// work), but can't reliably *encode* them. Opus's encoder traps with a WASM "memory access
+	// out of bounds" (same failure class as VP9); AMR has no encoder compiled in at all; and ALAC
+	// has no standalone muxer (it only lives inside .m4a, which we already offer). Offering them
+	// as targets produced conversions that always failed.
+	{ ext: 'opus', label: 'Opus', mime: 'audio/opus', category: 'audio', inputOnly: true },
 	{ ext: 'aiff', label: 'AIFF', mime: 'audio/aiff', category: 'audio' },
-	{ ext: 'alac', label: 'ALAC', mime: 'audio/x-alac', category: 'audio' },
-	{ ext: 'amr', label: 'AMR', mime: 'audio/amr', category: 'audio' },
+	{ ext: 'alac', label: 'ALAC', mime: 'audio/x-alac', category: 'audio', inputOnly: true },
+	{ ext: 'amr', label: 'AMR', mime: 'audio/amr', category: 'audio', inputOnly: true },
 	{ ext: 'ac3', label: 'AC3', mime: 'audio/ac3', category: 'audio' },
 ];
 
@@ -160,6 +167,34 @@ export function getExtension(filename: string): string {
 	const dot = filename.lastIndexOf('.');
 	if (dot === -1) return '';
 	return filename.slice(dot + 1).toLowerCase();
+}
+
+/**
+ * Extension aliases — different extensions that denote the *same* underlying format.
+ * Used to validate a dropped file against a conversion page's expected source: a `.jpeg`
+ * or `.jfif` file is still valid on the "JPG to …" page (all three are byte-identical JPEG),
+ * and `.tif` is the same format as `.tiff`.
+ */
+const EXT_ALIASES: Record<string, string> = {
+	jpeg: 'jpg',
+	jfif: 'jpg',
+	tif: 'tiff',
+};
+
+/** Collapses an extension to its canonical form (e.g. `jpeg`/`jfif` → `jpg`). */
+export function normalizeExt(ext: string): string {
+	const e = ext.toLowerCase();
+	return EXT_ALIASES[e] ?? e;
+}
+
+/**
+ * Whether a dropped file's format matches the expected source extension of a conversion
+ * pair (e.g. only genuine PNG files are valid on `/png-to-jpg`). Alias-aware, so
+ * `.jpeg`/`.jfif` count as `jpg`. Used by the converter to reject mismatched files on the
+ * per-conversion landing pages, while the homepage/hub converters stay auto-detecting.
+ */
+export function fileMatchesSourceExt(filename: string, expectedSourceExt: string): boolean {
+	return normalizeExt(getExtension(filename)) === normalizeExt(expectedSourceExt);
 }
 
 export function detectCategory(file: File): FileCategory | null {

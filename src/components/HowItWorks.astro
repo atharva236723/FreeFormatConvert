@@ -26,7 +26,10 @@ const steps = [
 
 <style>
 	.how-it-works {
+		position: relative;
 		background: var(--color-canvas-soft);
+		border-top: 1px solid var(--color-hairline);
+		border-bottom: 1px solid var(--color-hairline);
 		padding: var(--space-5xl) 0;
 	}
 
@@ -52,10 +55,26 @@ const steps = [
 		gap: var(--space-xl);
 	}
 
+	.step {
+		position: relative;
+	}
+
+	/* Numbered token: a gradient-outlined pill that reads as a real step marker. */
 	.step-number {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: var(--radius-md);
 		font-family: var(--font-mono);
-		font-size: var(--text-caption-mono-size);
-		color: var(--color-mute);
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: 600;
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		box-shadow: var(--shadow-level-2);
+		margin-bottom: var(--space-md);
 	}
 
 	.step-title {
@@ -68,7 +87,21 @@ const steps = [
 
 	.step-body {
 		font-size: var(--text-body-md-size);
+		line-height: 1.6;
 		color: var(--color-body);
+	}
+
+	/* Connector line between step markers on wide layouts. */
+	@media (min-width: 960px) {
+		.step:not(:last-child)::after {
+			content: '';
+			position: absolute;
+			top: 22px;
+			left: 56px;
+			right: calc(-1 * var(--space-xl));
+			height: 1px;
+			background: linear-gradient(90deg, var(--color-hairline-strong), transparent);
+		}
 	}
 
 	@media (max-width: 959px) {

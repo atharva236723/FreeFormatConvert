@@ -4,20 +4,79 @@ import NavBar from '../components/NavBar.astro';
 import Converter from '../components/Converter.astro';
 import FeatureStrip from '../components/FeatureStrip.astro';
 import HowItWorks from '../components/HowItWorks.astro';
+import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
 import { getPopularPairs } from '../lib/formats';
 
 const popular = getPopularPairs();
+
+const site = Astro.site?.href.replace(/\/$/, '') ?? '';
+
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'WebApplication',
+			name: 'Free Format Convert',
+			url: `${site}/`,
+			applicationCategory: 'UtilitiesApplication',
+			operatingSystem: 'Any (runs in the browser)',
+			description:
+				'Free online file format converter. Convert PDF to Word, HEIC to JPG, JPG to PDF, WebP to PNG and more — entirely in your browser, with no uploads.',
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+			featureList: [
+				'Convert PDF to Word',
+				'Convert HEIC to JPG',
+				'Convert JPG to PDF',
+				'Convert Word to PDF',
+				'WebP to PNG converter',
+				'PDF to PNG converter',
+				'JPEG to PNG converter',
+			],
+		},
+	],
+};
 ---
 
-<Layout>
+<Layout
+	title="Free Format Convert — Free Online File Format Converter"
+	description="Free Format Convert is a free online file format converter. Convert PDF to Word, HEIC to JPG, JPG to PDF, WebP to PNG and more — images, video, audio, PDF & Word files converted right in your browser with no uploads."
+	keywords="format convert, free format convert, file converter, convert pdf to word, how to convert pdf to word, convert heic to jpg, how to convert heic to jpg, convert jpg to pdf, convert jpg to pdf free, word to pdf, convert word to pdf, pdf to png converter, jpeg to png converter, webp to png converter, convert pdf to jpg, free conversion, online free conversion, online conversion, how to convert youtube to mp3 legally"
+>
+	<Fragment slot="head">
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+	</Fragment>
 	<NavBar />
 	<main>
 		<section class="hero">
+			<div class="hero-bg" aria-hidden="true"></div>
 			<div class="container hero-inner">
-				<h1 class="hero-title">Convert any file. Instantly. Privately.</h1>
+				<a class="hero-badge" href="#how-it-works">
+					<span class="hero-badge-dot"></span>
+					Runs 100% in your browser — nothing is ever uploaded
+				</a>
+				<h1 class="hero-title">
+					Convert Any File to Any Format.<br />
+					Fast, Private, and Effortless.
+				</h1>
 				<p class="hero-sub">Images, video, audio, PDF &amp; Word — converted right on your device. Nothing is ever uploaded.</p>
-				<Converter />
+				<div class="hero-converter">
+					<Converter />
+				</div>
+				<ul class="hero-trust">
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						No sign-up
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						No watermarks
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						Unlimited &amp; free
+					</li>
+				</ul>
 			</div>
 		</section>
 		<section class="popular">
@@ -28,7 +87,10 @@ const popular = getPopularPairs();
 						popular.map((p) => (
 							<li>
 								<a class="popular-chip" href={`/${p.slug}`}>
-									{p.sourceLabel} to {p.targetLabel}
+									<span>
+										{p.sourceLabel} to {p.targetLabel}
+									</span>
+									<svg class="popular-chip-arrow" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 								</a>
 							</li>
 						))
@@ -38,33 +100,247 @@ const popular = getPopularPairs();
 		</section>
 		<FeatureStrip />
 		<HowItWorks />
+		<section class="seo-content">
+			<div class="container prose">
+				<h2>The free online file format converter that keeps your files private</h2>
+				<p>
+					<strong>Free Format Convert</strong> is a free online file format converter that runs entirely in your
+					browser. Whether you need to convert PDF to Word, convert HEIC to JPG, convert JPG to PDF, or turn a WebP
+					into a PNG, every conversion happens on your own device — your files are never uploaded to a server. That
+					means faster conversions, complete privacy, and no waiting in an upload queue.
+				</p>
+
+				<h2>One tool for every format</h2>
+				<p>
+					Most people reach for a converter when they hit a wall: a phone photo saved as HEIC that won’t open on
+					Windows, a WebP image a website won’t accept, a PDF you need to edit in Word, or a document a colleague
+					asked for as a PDF. Instead of hunting for a different single-purpose site each time, Free Format Convert
+					handles images, video, audio, PDFs, ebooks, and Office documents in one place. Convert JPG to PDF free,
+					convert Word to PDF, change PNG to JPG, or extract MP3 audio from a video — it is all here, and it is all
+					free.
+				</p>
+
+				<h2>How to convert PDF to Word</h2>
+				<p>
+					Learning how to convert PDF to Word takes three steps. Drop your PDF onto the converter, choose Word (DOCX)
+					as the target format, and download the editable document. The text is extracted and reflowed into a real,
+					editable Word file — not a flat image — so you can keep working straight away. The same three steps work in
+					reverse when you need to convert Word to PDF: upload your .docx, pick PDF, and download a clean,
+					text-selectable file.
+				</p>
+
+				<h2>How to convert HEIC to JPG</h2>
+				<p>
+					iPhones save photos in HEIC, which many apps and websites still cannot open. To convert HEIC to JPG, drop
+					the photo in, select JPG, and download a universally compatible image in seconds. Because the decode happens
+					locally, even a folder of high-resolution photos converts quickly and privately.
+				</p>
+
+				<h2>Fast, free image conversions</h2>
+				<p>
+					Free Format Convert doubles as a fast PDF to PNG converter, JPEG to PNG converter, and WebP to PNG
+					converter. Convert PDF to JPG to grab a single page as an image, use the JPG to PDF free workflow to bundle
+					scans into one document, or switch between PNG, JPG, WebP, GIF, BMP, and more. Every image conversion uses
+					your browser’s built-in graphics engine, so results are instant and come with no watermarks.
+				</p>
+
+				<h2>How to convert YouTube to MP3 legally</h2>
+				<p>
+					A common question is how to convert YouTube to MP3 legally. Downloading audio from YouTube is only legal
+					when you own the content, when it is licensed under Creative Commons, or when you have the creator’s
+					permission — always respect copyright and YouTube’s terms of service. Once you have a video or audio file you
+					are allowed to use, Free Format Convert can turn it into MP3, WAV, AAC, FLAC, and other audio formats right
+					in your browser.
+				</p>
+
+				<h2>Why choose a private, online free conversion tool</h2>
+				<p>
+					Traditional converters upload your files to a remote server, process them, and send them back. That is
+					slower and puts your private documents and photos in someone else’s hands. Free Format Convert flips this
+					model: the conversion engine is downloaded to your browser and does the work locally. There are no accounts,
+					no email walls, no daily quotas, and no watermarks. Online free conversion here really means free — and
+					private. Pick a conversion above, or drop any file into the converter to see every format it supports.
+				</p>
+			</div>
+		</section>
+		<Faq />
 	</main>
 	<Footer />
 </Layout>
 
 <style>
+	.seo-content {
+		padding: var(--space-5xl) 0;
+	}
+
+	.seo-content .prose {
+		margin-inline: auto;
+	}
+
 	.hero {
-		padding: var(--space-4xl) 0 var(--space-5xl);
+		position: relative;
+		isolation: isolate;
+		padding: var(--space-5xl) 0 var(--space-5xl);
+	}
+
+	/* Ambient premium backdrop: soft gradient bloom + a faded grid that
+	   fans out behind the hero. Purely decorative, works in both themes. */
+	.hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.hero-bg::before {
+		content: '';
+		position: absolute;
+		top: -320px;
+		left: 50%;
+		width: min(1200px, 130%);
+		height: 760px;
+		transform: translateX(-50%);
+		background:
+			radial-gradient(38% 56% at 28% 42%, rgba(0, 124, 240, 0.28), transparent 70%),
+			radial-gradient(42% 56% at 72% 44%, rgba(121, 40, 202, 0.24), transparent 70%),
+			radial-gradient(36% 46% at 50% 68%, rgba(0, 223, 216, 0.22), transparent 70%);
+		filter: blur(56px);
+		opacity: 0.85;
+	}
+
+	:global(html[data-theme='dark']) .hero-bg::before {
+		opacity: 1;
 	}
 
 	.hero-inner {
 		text-align: center;
 	}
 
+	.hero-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
+		font-size: var(--text-body-sm-size);
+		font-weight: 500;
+		color: var(--color-body);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill);
+		padding: 6px 14px 6px 12px;
+		margin-bottom: var(--space-lg);
+		text-decoration: none;
+		box-shadow: var(--shadow-level-2);
+		transition: border-color 0.15s ease, transform 0.15s ease;
+	}
+
+	.hero-badge:hover {
+		border-color: var(--color-hairline-strong);
+		transform: translateY(-1px);
+	}
+
+	.hero-badge-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-success);
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
+		animation: badge-pulse 2.4s ease-out infinite;
+	}
+
+	@keyframes badge-pulse {
+		0% {
+			box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
+		}
+		70%,
+		100% {
+			box-shadow: 0 0 0 6px transparent;
+		}
+	}
+
+	/* Whole headline: a distinctive display face with a wide, slowly panning
+	   multi-stop gradient clipped to the text so every word shimmers. */
 	.hero-title {
-		font-size: var(--text-display-xl-size);
-		font-weight: var(--text-display-xl-weight);
-		line-height: var(--text-display-xl-leading);
-		letter-spacing: var(--text-display-xl-tracking);
-		color: var(--color-ink);
-		margin-bottom: var(--space-sm);
+		font-family: var(--font-display);
+		font-size: clamp(2.25rem, 5.8vw, 4.25rem);
+		font-weight: 700;
+		line-height: 1.04;
+		letter-spacing: -0.03em;
+		margin-bottom: var(--space-md);
+		text-wrap: balance;
+		background: linear-gradient(
+			100deg,
+			var(--color-gradient-develop-start) 0%,
+			var(--color-gradient-develop-end) 26%,
+			var(--color-gradient-preview-start) 52%,
+			var(--color-highlight-pink) 74%,
+			var(--color-gradient-develop-start) 100%
+		);
+		background-size: 200% auto;
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		animation:
+			hero-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both,
+			gradient-pan 8s linear infinite;
+	}
+
+	@keyframes hero-rise {
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	/* Shift by exactly one full gradient tile (200%) so the loop is seamless —
+	   the gradient's first and last stops are the same colour. */
+	@keyframes gradient-pan {
+		from {
+			background-position: 0% center;
+		}
+		to {
+			background-position: 200% center;
+		}
 	}
 
 	.hero-sub {
 		font-size: var(--text-body-lg-size);
+		line-height: 1.6;
 		color: var(--color-body);
-		max-width: 560px;
+		max-width: 580px;
 		margin: 0 auto var(--space-2xl);
+	}
+
+	.hero-converter {
+		position: relative;
+	}
+
+	.hero-trust {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-md) var(--space-lg);
+		list-style: none;
+		padding: 0;
+		margin: var(--space-xl) 0 0;
+	}
+
+	.hero-trust li {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: var(--text-body-sm-size);
+		font-weight: 500;
+		color: var(--color-mute);
+	}
+
+	.hero-trust svg {
+		color: var(--color-success);
 	}
 
 	.popular {
@@ -86,31 +362,51 @@ const popular = getPopularPairs();
 		gap: var(--space-xs);
 		list-style: none;
 		padding: 0;
-		max-width: 640px;
+		max-width: 680px;
 		margin-inline: auto;
 	}
 
 	.popular-chip {
 		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
 		font-size: var(--text-body-sm-size);
+		font-weight: 500;
 		color: var(--color-ink);
 		background: var(--color-canvas);
 		border: 1px solid var(--color-hairline);
 		border-radius: var(--radius-pill-sm);
 		padding: var(--space-xs) var(--space-md);
 		text-decoration: none;
-		transition: border-color 0.15s ease;
+		box-shadow: var(--shadow-level-1);
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 	}
 
 	.popular-chip:hover {
-		border-color: var(--color-ink);
+		border-color: var(--color-hairline-strong);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	.popular-chip-arrow {
+		color: var(--color-mute);
+		opacity: 0;
+		transform: translateX(-4px);
+		transition: opacity 0.15s ease, transform 0.15s ease;
+	}
+
+	.popular-chip:hover .popular-chip-arrow {
+		opacity: 1;
+		transform: translateX(0);
 	}
 
 	@media (max-width: 599px) {
-		.hero-title {
-			font-size: var(--text-display-lg-size);
-			line-height: var(--text-display-lg-leading);
-			letter-spacing: var(--text-display-lg-tracking);
+		.hero {
+			padding: var(--space-3xl) 0 var(--space-4xl);
+		}
+
+		.hero-sub {
+			font-size: var(--text-body-md-size);
 		}
 	}
 </style>

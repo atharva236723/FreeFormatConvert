@@ -5,6 +5,12 @@ const CORE_VERSION = '0.12.10';
 const CORE_BASE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
 
 /**
+ * Video containers we force to H.264 (libx264, ultrafast). See the codec-quirk comment in
+ * transcode() for why each needs the explicit codec/preset rather than ffmpeg's default.
+ */
+const H264_TARGETS = new Set(['mp4', 'mov', 'm4v', 'mkv', '3gp']);
+
+/**
  * Timeout scales with input size so a large-but-legitimately-slow conversion (e.g. a
  * video near the 1GB cap) isn't killed mid-encode, while a small file that's genuinely
  * stuck still fails fast instead of hanging for the full cap. Bounded at MAX so worst
@@ -107,17 +113,32 @@ export async function transcode(file: File, targetExt: string, opts: TranscodeOp
 		const target = targetExt.toLowerCase();
 		const args = ['-i', inputName];
 		if (opts.extractAudioOnly) args.push('-vn');
-		// This core build's libvpx-vp9 encoder (ffmpeg's default codec for .webm) reliably
-		// crashes with a WASM "memory access out of bounds" fault, even on trivial input —
-		// a known upstream ffmpeg.wasm issue, not something fixable from the JS side. VP8
-		// (libvpx) encodes the same container correctly, so pin it explicitly for webm targets.
-		if (target === 'webm' && !opts.extractAudioOnly) args.push('-c:v', 'libvpx');
-		// H.264 (the default codec for these containers) requires even pixel dimensions and
-		// yuv420p for broad playback. Animated GIFs frequently have odd dimensions, so a naive
-		// GIF→MP4 would fail with "width/height not divisible by 2". Force both. The scale
-		// filter is a no-op when dimensions are already even.
-		if ((target === 'mp4' || target === 'mov' || target === 'm4v') && !opts.extractAudioOnly) {
-			args.push('-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', '-pix_fmt', 'yuv420p');
+		if (target === 'webm' && !opts.extractAudioOnly) {
+			// Several webm defaults trap in this single-threaded wasm core:
+			//   - VP9 (ffmpeg's default codec for .webm) reliably faults with a WASM
+			//     "memory access out of bounds" — a known upstream ffmpeg.wasm issue — so pin VP8.
+			//   - VP8 with an alpha channel + auto_alt_ref (e.g. a transparent GIF source) also
+			//     fails to open the encoder, so flatten to yuv420p (drops alpha, rarely wanted in video).
+			//   - libvpx's default deadline is far too slow here (a 10s 360p clip blew the timeout),
+			//     so use the realtime deadline with an explicit bitrate to keep it inside the budget.
+			//   - Opus (the other default webm audio codec) traps the same way VP9 does, so pin Vorbis.
+			args.push(
+				'-c:v', 'libvpx', '-pix_fmt', 'yuv420p',
+				'-deadline', 'realtime', '-cpu-used', '8', '-b:v', '1M',
+				'-c:a', 'libvorbis',
+			);
+		} else if (H264_TARGETS.has(target) && !opts.extractAudioOnly) {
+			// Force H.264 for these containers. Some of them otherwise default to a codec that
+			// fails: .3gp selects H.263, which only accepts a handful of fixed frame sizes and
+			// rejects arbitrary dimensions like 640x360. libx264's default preset is also far too
+			// slow in the single-threaded wasm core (~40–60s for a short clip, and occasionally
+			// OOM-ing mid-encode), so pin ultrafast. yuv420p + an even-dimension scale keep the
+			// output broadly playable — animated GIFs are frequently odd-sized and H.264 rejects
+			// odd dimensions. The scale filter is a no-op when dimensions are already even.
+			args.push(
+				'-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+				'-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+			);
 		}
 		// Force the APNG muxer (not the single-frame PNG encoder the ".apng" extension would
 		// otherwise select) so every frame of an animated source is kept, and loop forever.

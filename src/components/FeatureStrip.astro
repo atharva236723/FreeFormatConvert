@@ -1,9 +1,29 @@
 ---
 const features = [
-	{ title: '100% private', body: 'Your files are converted on your own device. Nothing is ever uploaded anywhere.' },
-	{ title: 'Instant', body: 'No upload wait, no queue. Most conversions finish in seconds.' },
-	{ title: 'Generous limits', body: 'Video up to 1GB, no sign-up, no daily quota.' },
-	{ title: 'No watermarks', body: 'What you convert is exactly what you get to keep.' },
+	{
+		title: '100% private',
+		body: 'Your files are converted on your own device. Nothing is ever uploaded anywhere.',
+		gradient: 'develop',
+		icon: 'M12 3l7 3v5c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3zm-1 11.5l5-5-1.4-1.4L11 11.7 9.4 10 8 11.4l3 3.1z',
+	},
+	{
+		title: 'Instant',
+		body: 'No upload wait, no queue. Most conversions finish in seconds.',
+		gradient: 'ship',
+		icon: 'M13 2L4 14h6l-1 8 9-12h-6l1-8z',
+	},
+	{
+		title: 'Generous limits',
+		body: 'Video up to 1GB, no sign-up, no daily quota.',
+		gradient: 'preview',
+		icon: 'M4 7a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z',
+	},
+	{
+		title: 'No watermarks',
+		body: 'What you convert is exactly what you get to keep.',
+		gradient: 'develop',
+		icon: 'M9 12.5l2 2 4-4.5M12 3l7 3v5c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3z',
+	},
 ];
 ---
 
@@ -11,7 +31,12 @@ const features = [
 	<div class="container feature-grid">
 		{
 			features.map((f) => (
-				<div class="feature-card">
+				<div class="feature-card" data-gradient={f.gradient}>
+					<span class="feature-icon">
+						<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+							<path d={f.icon} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+					</span>
 					<p class="feature-title">{f.title}</p>
 					<p class="feature-body">{f.body}</p>
 				</div>
@@ -32,10 +57,65 @@ const features = [
 	}
 
 	.feature-card {
+		position: relative;
+		overflow: hidden;
 		background: var(--color-canvas);
-		border-radius: var(--radius-md);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-lg);
 		padding: var(--space-lg);
 		box-shadow: var(--shadow-level-2);
+		transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+	}
+
+	/* A hairline of gradient light along the top edge, tinted per card. */
+	.feature-card::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: 2px;
+		opacity: 0;
+		transition: opacity 0.18s ease;
+	}
+
+	.feature-card[data-gradient='develop']::before {
+		background: linear-gradient(90deg, var(--color-gradient-develop-start), var(--color-gradient-develop-end));
+	}
+	.feature-card[data-gradient='preview']::before {
+		background: linear-gradient(90deg, var(--color-gradient-preview-start), var(--color-gradient-preview-end));
+	}
+	.feature-card[data-gradient='ship']::before {
+		background: linear-gradient(90deg, var(--color-gradient-ship-start), var(--color-gradient-ship-end));
+	}
+
+	.feature-card:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--shadow-level-4);
+		border-color: var(--color-hairline-strong);
+	}
+
+	.feature-card:hover::before {
+		opacity: 1;
+	}
+
+	.feature-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: var(--radius-md);
+		margin-bottom: var(--space-md);
+		color: #fff;
+	}
+
+	.feature-card[data-gradient='develop'] .feature-icon {
+		background: linear-gradient(135deg, var(--color-gradient-develop-start), var(--color-gradient-develop-end));
+	}
+	.feature-card[data-gradient='preview'] .feature-icon {
+		background: linear-gradient(135deg, var(--color-gradient-preview-start), var(--color-gradient-preview-end));
+	}
+	.feature-card[data-gradient='ship'] .feature-icon {
+		background: linear-gradient(135deg, var(--color-gradient-ship-start), var(--color-gradient-ship-end));
 	}
 
 	.feature-title {
@@ -47,6 +127,7 @@ const features = [
 
 	.feature-body {
 		font-size: var(--text-body-sm-size);
+		line-height: 1.55;
 		color: var(--color-body);
 	}
 

@@ -2,13 +2,19 @@
 interface Props {
 	/** Pre-selected target extension (e.g. "jpg"). Auto-selects that format after upload. */
 	presetTarget?: string;
+	/**
+	 * Expected source extension (e.g. "png" on /png-to-jpg). When set, the converter validates
+	 * that the dropped file is actually that format and rejects mismatches. Only the exact-pair
+	 * SEO pages pass this — the homepage and category hubs omit it so they stay auto-detecting.
+	 */
+	presetSource?: string;
 	/** Display label for the source format, used only to tailor the dropzone copy. */
 	presetSourceLabel?: string;
 	/** Display label for the target format, used only to tailor the dropzone copy. */
 	presetTargetLabel?: string;
 }
 
-const { presetTarget, presetSourceLabel, presetTargetLabel } = Astro.props;
+const { presetTarget, presetSource, presetSourceLabel, presetTargetLabel } = Astro.props;
 
 const dropTitle = presetSourceLabel ? `Drop your ${presetSourceLabel} file` : 'Drop a file to convert';
 const dropSub = presetTargetLabel
@@ -16,7 +22,14 @@ const dropSub = presetTargetLabel
 	: 'or click to browse — images, video, audio, PDF & Word all work';
 ---
 
-<file-converter class="converter" data-state="idle" data-preset-target={presetTarget}>
+<file-converter
+	class="converter"
+	data-state="idle"
+	data-preset-target={presetTarget}
+	data-preset-source={presetSource}
+	data-preset-source-label={presetSourceLabel}
+	data-preset-target-label={presetTargetLabel}
+>
 	<div class="dropzone" data-role="dropzone" tabindex="0" role="button" aria-label="Choose a file to convert. Drag and drop, or press to browse.">
 		<svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true" width="32" height="32">
 			<path
@@ -115,7 +128,10 @@ const dropSub = presetTargetLabel
 
 		<div class="stage stage-error" role="alert">
 			<p class="error-message" data-role="error-message"></p>
-			<button type="button" class="ghost-button" data-role="retry-button">Try a different format</button>
+			<div class="stage-actions">
+				<button type="button" class="ghost-button" data-role="retry-button">Try a different format</button>
+				<a class="ghost-button error-action" data-role="error-action" href="/" hidden>Use the all-in-one converter</a>
+			</div>
 		</div>
 	</div>
 
@@ -254,29 +270,92 @@ const dropSub = presetTargetLabel
 	.format-grid {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--space-xs);
+		gap: var(--space-sm);
 	}
 
 	.format-audio-group {
 		margin-top: var(--space-md);
 	}
 
-	.format-chip {
+	/* Chips are created at runtime in converter-controller.ts, so they never
+	   receive Astro's scoped `data-astro-cid` attribute — target them globally. */
+	:global(.format-chip) {
+		--check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4 10-10'/%3E%3C/svg%3E");
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 0;
 		touch-action: manipulation;
 		font-family: var(--font-sans);
 		font-size: var(--text-body-sm-size);
-		font-weight: var(--text-body-sm-weight);
+		font-weight: 500;
 		color: var(--color-ink);
 		background: var(--color-canvas);
 		border: 1px solid var(--color-hairline);
 		border-radius: var(--radius-pill-sm);
 		padding: var(--space-xs) var(--space-md);
+		cursor: pointer;
+		overflow: hidden;
+		transition: border-color 0.18s ease, background-color 0.18s ease,
+			color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
 	}
 
-	.format-chip[aria-pressed='true'] {
+	/* Animated check mark that pops in on selection */
+	:global(.format-chip)::before {
+		content: '';
+		width: 0;
+		height: 14px;
+		margin-right: 0;
+		flex-shrink: 0;
+		background: currentColor;
+		-webkit-mask: var(--check-icon) center / contain no-repeat;
+		mask: var(--check-icon) center / contain no-repeat;
+		transform: scale(0);
+		opacity: 0;
+		transition: width 0.2s ease, margin-right 0.2s ease,
+			transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+	}
+
+	:global(.format-chip:hover) {
+		border-color: var(--color-ink);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-level-2);
+	}
+
+	:global(.format-chip:active) {
+		transform: translateY(0);
+	}
+
+	:global(.format-chip:focus-visible) {
+		outline: 2px solid var(--color-link);
+		outline-offset: 2px;
+	}
+
+	:global(.format-chip[aria-pressed='true']) {
 		background: var(--color-primary);
 		color: var(--color-on-primary);
 		border-color: var(--color-primary);
+		box-shadow: var(--shadow-level-3);
+		animation: chip-select-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	:global(.format-chip[aria-pressed='true'])::before {
+		width: 14px;
+		margin-right: 6px;
+		transform: scale(1);
+		opacity: 1;
+	}
+
+	@keyframes chip-select-pop {
+		0% {
+			transform: scale(0.94);
+		}
+		55% {
+			transform: scale(1.05);
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 
 	.format-more {
@@ -322,6 +401,9 @@ const dropSub = presetTargetLabel
 	}
 
 	.ghost-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		font-family: var(--font-sans);
 		font-size: var(--text-body-sm-strong-size);
 		font-weight: var(--text-body-sm-strong-weight);
@@ -330,6 +412,12 @@ const dropSub = presetTargetLabel
 		border: 1px solid var(--color-hairline);
 		border-radius: var(--radius-sm);
 		padding: var(--space-xs) var(--space-sm);
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.ghost-button:hover {
+		border-color: var(--color-ink);
 	}
 
 	.stage-converting {

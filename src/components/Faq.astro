@@ -1,26 +1,72 @@
 ---
+// FAQ content lives here as the single source of truth: the same array renders
+// the visible accordion AND the FAQPage JSON-LD below, so the structured data
+// always matches what's on the page (a Google rich-results requirement).
+// Answers are HTML strings so both the visible markup and the schema `text`
+// field can carry the same paragraphs/links.
 const faqs = [
 	{
-		q: 'Is this really private?',
-		a: 'Yes. Every conversion runs locally in your browser using WebAssembly. Your file is never uploaded to a server — we couldn’t see it even if we wanted to.',
+		q: 'How do I convert a PDF to Word?',
+		a: '<p>Drop your PDF onto the converter above, choose <strong>Word (DOCX)</strong> as the target format, and download the editable document. The text is extracted and reflowed into a real, editable <code>.docx</code> file — not a flat image — so you can keep writing straight away. Everything runs in your browser, so the PDF is never uploaded to a server.</p>',
+	},
+	{
+		q: 'How can I convert YouTube to MP3 legally?',
+		a: '<p>Converting YouTube audio to MP3 is only legal when you <strong>own the content</strong>, when it is licensed under Creative Commons, or when you have the creator’s explicit permission — always respect copyright law and YouTube’s Terms of Service. Once you have a video or audio file you are allowed to use, Free Format Convert can turn it into MP3, WAV, AAC, FLAC, and other audio formats right on your device.</p>',
+	},
+	{
+		q: 'How do I convert HEIC to JPG?',
+		a: '<p>iPhones save photos as HEIC, which many apps and websites still can’t open. To convert HEIC to JPG, drop the photo into the converter, select <strong>JPG</strong> as the output, and download a universally compatible image. The decode happens locally, so even high-resolution photos convert in seconds and stay private.</p>',
+	},
+	{
+		q: 'How do I convert a PDF to JPG?',
+		a: '<p>Upload your PDF and choose <strong>JPG</strong> as the target. A single-page PDF is turned into one JPG image; a multi-page PDF is rendered page by page and delivered as a <code>.zip</code> of numbered images. Because the pages are rendered in your browser, there is no upload, no watermark, and no page limit.</p>',
+	},
+	{
+		q: 'How do I convert a JPG to PDF?',
+		a: '<p>Drop your JPG (or PNG, WebP, or HEIC) into the converter and pick <strong>PDF</strong>. The image is placed on a clean white page and saved as a standard PDF — ideal for bundling a scan or photo into a document you can email or print. You can convert JPG to PDF for free with no sign-up.</p>',
+	},
+	{
+		q: 'How do I convert a picture to PDF on iPhone?',
+		a: '<p>You don’t need an app. Open <strong>freeformatconvert.com</strong> in Safari on your iPhone, tap the upload area, and choose <em>Photo Library</em> to pick your picture. Select <strong>PDF</strong> as the target and download — the file saves to your Files app or Downloads. Everything happens on the phone itself, so your photo never leaves the device.</p>',
+	},
+	{
+		q: 'What is a PDF?',
+		a: '<p>PDF stands for <strong>Portable Document Format</strong>, a file type created by Adobe that preserves a document’s exact layout — fonts, images, and formatting — so it looks the same on every device and operating system. Because PDFs are self-contained and hard to alter by accident, they’re the standard for résumés, contracts, invoices, forms, and e-books.</p>',
+	},
+	{
+		q: 'How do I edit a PDF?',
+		a: '<p>PDFs are designed to be fixed, so the simplest way to edit one is to convert it into an editable format first. Convert your <strong>PDF to Word (DOCX)</strong> here, make your changes in Word, Google Docs, or any editor, then convert the finished document <strong>back to PDF</strong>. This round-trip lets you rewrite text without paid PDF-editing software.</p>',
+	},
+	{
+		q: 'Is Free Format Convert really free?',
+		a: '<p>Yes. Every conversion is completely free — no sign-up, no email, no watermarks, and no daily limits. Because files are converted on your own device, there are no server costs to pass on to you.</p>',
+	},
+	{
+		q: 'Are my files private and safe?',
+		a: '<p>Completely. Every conversion runs locally in your browser using WebAssembly, so your files are <strong>never uploaded</strong> to a server — we couldn’t see them even if we wanted to. Nothing is stored, logged, or shared.</p>',
+	},
+	{
+		q: 'Do I need to install any software?',
+		a: '<p>No. Free Format Convert works entirely in your web browser on Windows, Mac, Linux, Android, and iPhone. There is nothing to download or install — just open the site and drop in a file.</p>',
 	},
 	{
 		q: 'Is there a file size limit?',
-		a: 'Images up to 50MB, audio up to 300MB, and video up to 1GB — generous enough for real files, small enough that your browser can convert them quickly.',
-	},
-	{
-		q: 'Which formats are supported?',
-		a: 'Popular image, video, and audio formats out of the box, with an expandable list covering many more. You can also extract audio directly from a video file.',
-	},
-	{
-		q: 'Do I need to sign up?',
-		a: 'No account, no email, no watermark on your output.',
-	},
-	{
-		q: 'Why is my first conversion a little slower?',
-		a: 'Image conversions are instant. For video and audio, the browser downloads a small conversion engine the first time you use it in a session, then reuses it for every conversion after that.',
+		a: '<p>Images up to 50MB, audio up to 300MB, video up to 1GB, and documents up to 100MB — generous enough for real files, while keeping conversions fast enough for your browser to handle.</p>',
 	},
 ];
+
+const faqSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqs.map((item) => ({
+		'@type': 'Question',
+		name: item.q,
+		acceptedAnswer: {
+			'@type': 'Answer',
+			text: item.a,
+		},
+	})),
+};
 ---
 
 <section id="faq" class="faq">
@@ -31,13 +77,15 @@ const faqs = [
 				faqs.map((item) => (
 					<details class="faq-item">
 						<summary>{item.q}</summary>
-						<p>{item.a}</p>
+						<div class="faq-answer" set:html={item.a} />
 					</details>
 				))
 			}
 		</div>
 	</div>
 </section>
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
 <style>
 	.faq {
@@ -73,9 +121,21 @@ const faqs = [
 		cursor: pointer;
 	}
 
-	.faq-item p {
+	.faq-answer {
+		margin-top: var(--space-sm);
+	}
+
+	.faq-answer :global(p) {
 		font-size: var(--text-body-md-size);
 		color: var(--color-body);
+	}
+
+	.faq-answer :global(p + p) {
 		margin-top: var(--space-sm);
+	}
+
+	.faq-answer :global(code) {
+		font-family: var(--font-geist-mono);
+		font-size: 0.9em;
 	}
 </style>

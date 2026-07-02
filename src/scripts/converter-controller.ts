@@ -1,5 +1,6 @@
 import {
 	detectCategory,
+	fileMatchesSourceExt,
 	formatBytes,
 	getAvailableTargets,
 	getExtension,
@@ -31,6 +32,7 @@ class FileConverter extends HTMLElement {
 	private resetBtn!: HTMLButtonElement;
 	private retryBtn!: HTMLButtonElement;
 	private errorMessageEl!: HTMLElement;
+	private errorActionEl!: HTMLAnchorElement;
 	private statusAnnouncer!: HTMLElement;
 
 	private currentFile: File | null = null;
@@ -38,6 +40,9 @@ class FileConverter extends HTMLElement {
 	private objectUrl: string | null = null;
 	private dragCounter = 0;
 	private presetTarget: string | null = null;
+	private presetSource: string | null = null;
+	private presetSourceLabel: string | null = null;
+	private presetTargetLabel: string | null = null;
 
 	connectedCallback() {
 		this.dropzone = this.query('[data-role="dropzone"]');
@@ -60,9 +65,13 @@ class FileConverter extends HTMLElement {
 		this.resetBtn = this.query<HTMLButtonElement>('[data-role="reset-button"]');
 		this.retryBtn = this.query<HTMLButtonElement>('[data-role="retry-button"]');
 		this.errorMessageEl = this.query('[data-role="error-message"]');
+		this.errorActionEl = this.query<HTMLAnchorElement>('[data-role="error-action"]');
 		this.statusAnnouncer = this.query('[data-role="status-announcer"]');
 
 		this.presetTarget = this.dataset.presetTarget?.toLowerCase() || null;
+		this.presetSource = this.dataset.presetSource?.toLowerCase() || null;
+		this.presetSourceLabel = this.dataset.presetSourceLabel || null;
+		this.presetTargetLabel = this.dataset.presetTargetLabel || null;
 
 		this.wireEvents();
 	}
@@ -112,7 +121,12 @@ class FileConverter extends HTMLElement {
 
 		this.changeFileBtn.addEventListener('click', () => this.fileInput.click());
 		this.resetBtn.addEventListener('click', () => this.reset());
-		this.retryBtn.addEventListener('click', () => this.setState('file-selected'));
+		this.retryBtn.addEventListener('click', () => {
+			// After a conversion error the file is still valid — go back to the format picker.
+			// After a rejection (bad type/format/size) there's no valid file — reopen the chooser.
+			if (this.currentFile) this.setState('file-selected');
+			else this.fileInput.click();
+		});
 		this.convertBtn.addEventListener('click', () => this.runConversion());
 	}
 
@@ -121,6 +135,23 @@ class FileConverter extends HTMLElement {
 		if (!category) {
 			this.currentFile = null;
 			this.showError("We don't support that file type yet. Try an image, video, audio, PDF, or Word file.");
+			return;
+		}
+
+		// On an exact-conversion page (e.g. /png-to-jpg) the source format is fixed — reject a file
+		// that isn't that format instead of silently offering a different conversion. The homepage
+		// and category hubs leave presetSource unset, so they keep auto-detecting whatever is dropped.
+		if (this.presetSource && !fileMatchesSourceExt(file.name, this.presetSource)) {
+			this.currentFile = null;
+			const expected = (this.presetSourceLabel || this.presetSource.toUpperCase()).trim();
+			const target = this.presetTargetLabel || this.presetTarget?.toUpperCase() || '';
+			const droppedExt = getExtension(file.name);
+			const dropped = droppedExt ? `a ${droppedExt.toUpperCase()} file` : 'a different file type';
+			this.showError(
+				`This converter turns ${expected} files into ${target}, but you dropped ${dropped}. ` +
+					`Drop a ${expected} file to continue, or use the all-in-one converter to convert this file.`,
+				{ label: 'Use the all-in-one converter', href: '/' },
+			);
 			return;
 		}
 
@@ -233,8 +264,17 @@ class FileConverter extends HTMLElement {
 		}
 	}
 
-	private showError(message: string) {
+	private showError(message: string, action?: { label: string; href: string }) {
 		this.errorMessageEl.textContent = message;
+		// A conversion failure keeps the file (retry a different target); a rejected file needs a new one.
+		this.retryBtn.textContent = this.currentFile ? 'Try a different format' : 'Choose a different file';
+		if (action) {
+			this.errorActionEl.textContent = action.label;
+			this.errorActionEl.href = action.href;
+			this.errorActionEl.hidden = false;
+		} else {
+			this.errorActionEl.hidden = true;
+		}
 		this.announce(message);
 		this.setState('error');
 	}

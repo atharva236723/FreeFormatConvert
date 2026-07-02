@@ -26,6 +26,7 @@ const related = getRelatedPairs(pair).map((r) => ({ slug: r.slug, label: `${r.so
 	heading={`${sourceLabel} to ${targetLabel} Converter`}
 	subtitle={`Turn your ${sourceLabel} files into ${targetLabel} instantly, right on your device. No uploads, no sign-up, no limits.`}
 	presetTarget={pair.targetExt}
+	presetSource={pair.sourceExt}
 	presetSourceLabel={sourceLabel}
 	presetTargetLabel={targetLabel}
 	relatedTitle={`Other ${sourceLabel} conversions`}

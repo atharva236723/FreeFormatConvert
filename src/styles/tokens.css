@@ -32,6 +32,14 @@
 	--color-selection-bg: #171717;
 	--color-selection-fg: #f2f2f2;
 
+	/* Chrome (NavBar + Footer) — a distinct dark surface that separates the app
+	   frame from the page content. Overrides the neutral canvas in both themes. */
+	--color-chrome: #171717;
+	--color-chrome-fg: #ffffff;
+	--color-chrome-fg-muted: #b3b3b3;
+	--color-chrome-hover: #2a2a2a;
+	--color-chrome-border: #2b2b2b;
+
 	/* Spacing (4px base unit) */
 	--space-xxs: 4px;
 	--space-xs: 8px;
@@ -60,6 +68,7 @@
 	/* Typography */
 	--font-sans: var(--font-geist-sans, Inter, system-ui, -apple-system, sans-serif);
 	--font-mono: var(--font-geist-mono, 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace);
+	--font-display: var(--font-space-grotesk, 'Space Grotesk', var(--font-geist-sans, Inter, system-ui, sans-serif));
 
 	--text-display-xl-size: 48px;
 	--text-display-xl-weight: 600;
@@ -159,6 +168,13 @@
 	--color-warning-deep: #ffcc66;
 	--color-selection-bg: #ededed;
 	--color-selection-fg: #171717;
+
+	/* Chrome lifts above the near-black page in dark mode. */
+	--color-chrome: #1b1b1b;
+	--color-chrome-fg: #ededed;
+	--color-chrome-fg-muted: #8f8f8f;
+	--color-chrome-hover: #2e2e2e;
+	--color-chrome-border: #333333;
 
 	--shadow-level-1: inset 0 0 0 1px #ffffff1a;
 	--shadow-level-2: 0px 1px 1px #00000030, 0px 2px 2px #00000030, inset 0 0 0 1px #ffffff1a;

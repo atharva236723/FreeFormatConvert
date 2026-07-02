@@ -8,7 +8,7 @@ import {
 	MAX_FILE_SIZE_BYTES,
 	type FileCategory,
 } from '../formats';
-import { convertImage } from './imageEngine';
+import { convertImage, convertImageToIco } from './imageEngine';
 import { ConversionError } from './errors';
 
 export { ConversionError } from './errors';
@@ -76,7 +76,13 @@ export async function convertFile(file: File, targetExt: string, opts: ConvertOp
 
 	try {
 		let blob: Blob;
-		if (sourceCategory === 'image' && targetCategory === 'image' && isFastPathPair(sourceExt, targetExt)) {
+		if (sourceCategory === 'image' && targetExt.toLowerCase() === 'ico') {
+			// ffmpeg's wasm core can't mux ICO, so ICO is encoded on the Canvas path instead
+			// (rasterize → PNG → wrap in an ICO container). Works for any Canvas-decodable source.
+			opts.onProgress?.(0.5);
+			blob = await convertImageToIco(file);
+			opts.onProgress?.(1);
+		} else if (sourceCategory === 'image' && targetCategory === 'image' && isFastPathPair(sourceExt, targetExt)) {
 			opts.onProgress?.(0.5);
 			blob = await convertImage(file, targetExt);
 			opts.onProgress?.(1);
