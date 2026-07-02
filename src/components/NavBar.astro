@@ -32,7 +32,10 @@ const hubLinks = [
 
 <header class="nav-bar">
 	<div class="container nav-inner">
-		<a href="/" class="logo">Free Format Convert</a>
+		<a href="/" class="logo">
+			<img class="logo-mark" src="/favicon.svg" alt="" width="28" height="28" aria-hidden="true" />
+			Free Format Convert
+		</a>
 		<nav class="nav-links" aria-label="Primary">
 			<div class="nav-dropdown" data-dropdown>
 				<button
@@ -123,8 +126,8 @@ const hubLinks = [
 
 <style>
 	.nav-bar {
-		background: var(--color-canvas);
-		border-bottom: 1px solid var(--color-hairline);
+		background: var(--color-chrome);
+		border-bottom: 1px solid var(--color-chrome-border);
 	}
 
 	.nav-inner {
@@ -137,12 +140,22 @@ const hubLinks = [
 	}
 
 	.logo {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
 		font-size: var(--text-display-sm-size);
 		font-weight: var(--text-display-sm-weight);
 		letter-spacing: var(--text-display-sm-tracking);
-		color: var(--color-ink);
+		color: var(--color-chrome-fg);
 		text-decoration: none;
 		white-space: nowrap;
+	}
+
+	.logo-mark {
+		display: block;
+		width: 28px;
+		height: 28px;
+		flex-shrink: 0;
 	}
 
 	.nav-links {
@@ -154,15 +167,15 @@ const hubLinks = [
 
 	.nav-links > a {
 		font-size: var(--text-body-sm-size);
-		color: var(--color-body);
+		color: var(--color-chrome-fg-muted);
 		text-decoration: none;
 		padding: var(--space-xs) var(--space-sm);
 		border-radius: var(--radius-full);
 	}
 
 	.nav-links > a:hover {
-		background: var(--color-canvas-soft);
-		color: var(--color-ink);
+		background: var(--color-chrome-hover);
+		color: var(--color-chrome-fg);
 	}
 
 	/* Conversions dropdown */
@@ -177,7 +190,7 @@ const hubLinks = [
 		cursor: pointer;
 		font-family: inherit;
 		font-size: var(--text-body-sm-size);
-		color: var(--color-body);
+		color: var(--color-chrome-fg-muted);
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-xxs);
@@ -187,8 +200,8 @@ const hubLinks = [
 
 	.nav-dropdown-trigger:hover,
 	.nav-dropdown-trigger[aria-expanded='true'] {
-		background: var(--color-canvas-soft);
-		color: var(--color-ink);
+		background: var(--color-chrome-hover);
+		color: var(--color-chrome-fg);
 	}
 
 	.nav-dropdown-trigger .chevron {
@@ -320,7 +333,7 @@ const hubLinks = [
 			flex-wrap: wrap;
 			gap: var(--space-xs) var(--space-sm);
 			padding-top: var(--space-sm);
-			border-top: 1px solid var(--color-hairline);
+			border-top: 1px solid var(--color-chrome-border);
 		}
 
 		/* Center the panel under the wrapped link row instead of anchoring it to
@@ -385,7 +398,7 @@ const hubLinks = [
 	}
 
 	.theme-toggle[aria-pressed='true'] .theme-toggle-track {
-		background: var(--color-ink);
+		background: var(--color-chrome-hover);
 	}
 
 	.theme-toggle[aria-pressed='true'] .theme-toggle-thumb {

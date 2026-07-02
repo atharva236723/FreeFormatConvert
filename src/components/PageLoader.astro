@@ -1,0 +1,189 @@
+---
+// Page-transition loading indicator for the multi-page app.
+//
+// This is an MPA (full document loads, no client-side router), so navigation
+// works like this: click an internal link -> the current page keeps running
+// while the browser fetches the next document -> the old document is replaced.
+// We ride on top of that: the bar trickles toward ~90% on the outgoing page,
+// then the incoming page (via a sessionStorage handoff flag) snaps it to 100%
+// and fades it out — a clean start-on-leave / finish-on-arrive animation.
+//
+// The script is `is:inline` so it runs immediately, before the bundled page
+// scripts, and can catch link clicks + finish the bar on first paint.
+---
+
+<div id="page-loader" class="page-loader" aria-hidden="true">
+	<div class="page-loader-bar"></div>
+</div>
+
+<style>
+	.page-loader {
+		position: fixed;
+		inset: 0 0 auto 0;
+		height: 3px;
+		z-index: 2000;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.35s ease;
+	}
+
+	.page-loader.is-active {
+		opacity: 1;
+	}
+
+	.page-loader.is-done {
+		opacity: 0;
+	}
+
+	.page-loader-bar {
+		position: relative;
+		height: 100%;
+		width: 0;
+		border-radius: 0 var(--radius-full) var(--radius-full) 0;
+		background: linear-gradient(
+			100deg,
+			var(--color-gradient-develop-start) 0%,
+			var(--color-gradient-develop-end) 26%,
+			var(--color-gradient-preview-start) 52%,
+			var(--color-highlight-pink) 74%,
+			var(--color-gradient-develop-start) 100%
+		);
+		background-size: 200% 100%;
+		animation: ffc-loader-pan 1.4s linear infinite;
+		transition: width 0.25s ease;
+	}
+
+	/* Glowing leading edge that trails the bar as it advances. */
+	.page-loader-bar::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		width: 90px;
+		border-radius: var(--radius-full);
+		box-shadow:
+			0 0 10px 1px var(--color-highlight-pink),
+			0 0 18px 3px var(--color-gradient-preview-start);
+		opacity: 0.9;
+	}
+
+	@keyframes ffc-loader-pan {
+		from {
+			background-position: 0% 50%;
+		}
+		to {
+			background-position: 200% 50%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.page-loader-bar {
+			animation: none;
+		}
+	}
+</style>
+
+<script is:inline>
+	(function () {
+		var el = document.getElementById('page-loader');
+		if (!el) return;
+		var bar = el.querySelector('.page-loader-bar');
+		var trickle = null;
+		var progress = 0;
+		var FLAG = 'ffc:navigating';
+
+		function set(p) {
+			progress = p;
+			bar.style.width = p * 100 + '%';
+		}
+
+		function start() {
+			// Don't restart if a trickle is already climbing.
+			if (el.classList.contains('is-active') && progress > 0 && progress < 0.9) return;
+			clearInterval(trickle);
+			el.classList.remove('is-done');
+			el.classList.add('is-active');
+			set(0.08);
+			trickle = setInterval(function () {
+				var remaining = 0.9 - progress;
+				if (remaining <= 0.002) return;
+				set(progress + remaining * 0.12); // ease toward 90%, never quite arriving
+			}, 260);
+		}
+
+		function done() {
+			clearInterval(trickle);
+			el.classList.add('is-active');
+			set(1);
+			setTimeout(function () {
+				el.classList.add('is-done');
+			}, 220);
+			setTimeout(function () {
+				el.classList.remove('is-active', 'is-done');
+				set(0);
+			}, 600);
+		}
+
+		// If we just arrived from an internal navigation, finish the bar.
+		try {
+			if (sessionStorage.getItem(FLAG) === '1') {
+				sessionStorage.removeItem(FLAG);
+				el.classList.add('is-active');
+				set(0.85);
+				requestAnimationFrame(function () {
+					requestAnimationFrame(done);
+				});
+			}
+		} catch (e) {}
+
+		function isInternalNav(a) {
+			if (!a) return false;
+			if (a.target && a.target !== '_self') return false;
+			if (a.hasAttribute('download')) return false;
+			var href = a.getAttribute('href');
+			if (!href || href.charAt(0) === '#') return false;
+			if (/^(mailto:|tel:|javascript:|blob:|data:)/i.test(href)) return false;
+			var url;
+			try {
+				url = new URL(a.href);
+			} catch (e) {
+				return false;
+			}
+			if (url.origin !== location.origin) return false;
+			// Same page (pure hash / query-less self link) — no document swap.
+			if (url.pathname === location.pathname && url.search === location.search) return false;
+			return true;
+		}
+
+		document.addEventListener(
+			'click',
+			function (e) {
+				if (e.defaultPrevented || e.button !== 0) return;
+				if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+				var a = e.target && e.target.closest ? e.target.closest('a') : null;
+				if (!isInternalNav(a)) return;
+				try {
+					sessionStorage.setItem(FLAG, '1');
+				} catch (err) {}
+				start();
+			},
+			true
+		);
+
+		// Programmatic navigations / form submits also unload the page.
+		window.addEventListener('beforeunload', start);
+
+		// Back/forward from the bfcache restores this page frozen — reset the bar.
+		window.addEventListener('pageshow', function (e) {
+			if (e.persisted) {
+				clearInterval(trickle);
+				el.classList.remove('is-active', 'is-done');
+				set(0);
+				try {
+					sessionStorage.removeItem(FLAG);
+				} catch (err) {}
+			}
+		});
+	})();
+</script>

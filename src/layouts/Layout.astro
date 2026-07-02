@@ -1,21 +1,34 @@
 ---
 import { Font } from 'astro:assets';
 import '../styles/global.css';
+import PageLoader from '../components/PageLoader.astro';
 
 interface Props {
 	title?: string;
 	description?: string;
 	/** Path (e.g. "/png-to-jpg") for the canonical + og:url tags. Defaults to the current page. */
 	canonical?: string;
+	/** Comma-separated keyword list for the <meta name="keywords"> tag. */
+	keywords?: string;
+	/** Open Graph type — "website" for hubs, "article" for content pages. */
+	ogType?: string;
+	/** Absolute-or-root-relative social share image. Defaults to the self-hosted app icon. */
+	ogImage?: string;
 }
 
+const SITE_NAME = 'Free Format Convert';
+
 const {
-	title = 'Free Format Convert — Convert any image, video, audio, PDF, or Word file, privately',
-	description = 'Convert images, video, audio, PDF, and Word files between formats entirely in your browser. No uploads, no size limits, no sign-up.',
+	title = 'Free Format Convert — Free Online File Format Converter',
+	description = 'Free Format Convert is a free online file format converter. Convert PDF to Word, HEIC to JPG, JPG to PDF, WebP to PNG, and images, video, audio, PDF & Word files entirely in your browser — no uploads, no sign-up.',
 	canonical,
+	keywords = 'format convert, file converter, convert pdf to word, convert heic to jpg, convert jpg to pdf, word to pdf, free conversion, online conversion, pdf to png converter, jpeg to png converter, webp to png converter',
+	ogType = 'website',
+	ogImage = '/web-app-manifest-512x512.png',
 } = Astro.props;
 
 const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
+const ogImageURL = new URL(ogImage, Astro.site);
 ---
 
 <!doctype html>
@@ -24,31 +37,62 @@ const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
 		<script is:inline>
 			(function () {
 				var stored = localStorage.getItem('theme');
-				var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+				// Dark by default for new visitors; a returning user's explicit choice wins.
+				var theme = stored || 'dark';
 				if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 			})();
 		</script>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+		<!-- Google tag (gtag.js) -->
+			<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-GHKMYV9LM8"></script>
+			<script is:inline>
+				window.dataLayer = window.dataLayer || [];
+				function gtag() {
+					dataLayer.push(arguments);
+				}
+				gtag('js', new Date());
+
+				gtag('config', 'G-GHKMYV9LM8');
+			</script>
+
+			<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="shortcut icon" href="/favicon.ico" />
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-		<meta name="apple-mobile-web-app-title" content="Format" />
+		<meta name="apple-mobile-web-app-title" content="Free Format Convert" />
 		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
+		<meta name="keywords" content={keywords} />
+		<meta name="robots" content="index, follow, max-image-preview:large" />
+		<meta name="author" content={SITE_NAME} />
 		<link rel="canonical" href={canonicalURL.href} />
-		<meta property="og:type" content="website" />
+
+		<!-- Open Graph -->
+		<meta property="og:site_name" content={SITE_NAME} />
+		<meta property="og:type" content={ogType} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonicalURL.href} />
-		<meta name="twitter:card" content="summary" />
+		<meta property="og:image" content={ogImageURL.href} />
+		<meta property="og:image:alt" content={`${SITE_NAME} — free online file format converter`} />
+		<meta property="og:locale" content="en_US" />
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImageURL.href} />
+
+		<slot name="head" />
 		<Font cssVariable="--font-geist-sans" preload />
 		<Font cssVariable="--font-geist-mono" />
+		<Font cssVariable="--font-space-grotesk" preload />
 	</head>
 	<body>
+		<PageLoader />
 		<slot />
 	</body>
 </html>
