@@ -1,0 +1,603 @@
+/**
+ * Shared chrome for the standalone tool widgets (image/pdf/media editors, converters).
+ * Imported by each tool component's frontmatter so the classes are globally available —
+ * the tool controllers inject elements at runtime, so these can't be Astro-scoped styles.
+ * Visual language matches Converter.astro (dropzone, cards, pill buttons, tokens.css vars).
+ */
+
+.tool {
+	max-width: 760px;
+	margin-inline: auto;
+}
+
+.tool-dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-xs);
+	text-align: center;
+	padding: var(--space-4xl) var(--space-xl);
+	border: 1.5px dashed var(--color-hairline-strong);
+	border-radius: var(--radius-xl);
+	background: var(--color-canvas);
+	color: var(--color-body);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tool-dropzone:hover,
+.tool-dropzone:focus-visible {
+	border-color: var(--color-ink);
+	outline: none;
+}
+
+.tool[data-state='dragging'] .tool-dropzone {
+	border-color: var(--color-link);
+	background: var(--color-link-bg-soft);
+}
+
+.tool-dropzone-icon {
+	color: var(--color-ink);
+}
+
+.tool-dropzone-title {
+	font-size: var(--text-display-sm-size);
+	font-weight: var(--text-display-sm-weight);
+	line-height: var(--text-display-sm-leading);
+	letter-spacing: var(--text-display-sm-tracking);
+	color: var(--color-ink);
+}
+
+.tool-dropzone-sub {
+	font-size: var(--text-body-sm-size);
+	color: var(--color-mute);
+}
+
+/* The dropzone shows only in idle/dragging; everything else lives in the panel. */
+.tool:not([data-state='idle']):not([data-state='dragging']) .tool-dropzone {
+	display: none;
+}
+
+.tool-panel {
+	display: none;
+	background: var(--color-canvas);
+	border-radius: var(--radius-lg);
+	padding: var(--space-xl);
+	box-shadow: var(--shadow-level-3);
+}
+
+.tool:not([data-state='idle']):not([data-state='dragging']) .tool-panel {
+	display: block;
+}
+
+.tool-filebar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-sm);
+	padding-bottom: var(--space-md);
+	margin-bottom: var(--space-lg);
+	border-bottom: 1px solid var(--color-hairline);
+}
+
+.tool-filename {
+	min-width: 0;
+	font-size: var(--text-body-sm-strong-size);
+	font-weight: var(--text-body-sm-strong-weight);
+	color: var(--color-ink);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tool-filesize {
+	font-size: var(--text-caption-size);
+	color: var(--color-mute);
+	flex-shrink: 0;
+}
+
+.tool-filebar .tool-ghost {
+	margin-left: auto;
+	flex-shrink: 0;
+}
+
+/* Stages toggled by data-state, same pattern as the converter */
+.tool-stage {
+	display: none;
+}
+.tool[data-state='editing'] .tool-stage-edit,
+.tool[data-state='working'] .tool-stage-work,
+.tool[data-state='done'] .tool-stage-done,
+.tool[data-state='error'] .tool-stage-error {
+	display: block;
+}
+
+.tool-workspace {
+	display: grid;
+	grid-template-columns: 1fr minmax(220px, 260px);
+	gap: var(--space-xl);
+	align-items: start;
+}
+
+@media (max-width: 640px) {
+	.tool-workspace {
+		grid-template-columns: 1fr;
+	}
+}
+
+.tool-preview {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 220px;
+	padding: var(--space-md);
+	background: var(--color-canvas-soft-2);
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.tool-preview img,
+.tool-preview canvas {
+	max-width: 100%;
+	max-height: 420px;
+	height: auto;
+	border-radius: var(--radius-sm);
+}
+
+.tool-controls {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-lg);
+}
+
+.tool-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xs);
+}
+
+.tool-label {
+	font-size: var(--text-body-sm-strong-size);
+	font-weight: var(--text-body-sm-strong-weight);
+	color: var(--color-ink);
+}
+
+.tool-hint {
+	font-size: var(--text-caption-size);
+	color: var(--color-mute);
+}
+
+.tool-input,
+.tool-select {
+	font-family: var(--font-sans);
+	font-size: var(--text-body-sm-size);
+	color: var(--color-ink);
+	background: var(--color-canvas);
+	border: 1px solid var(--color-hairline-strong);
+	border-radius: var(--radius-sm);
+	padding: var(--space-xs) var(--space-sm);
+	width: 100%;
+}
+
+.tool-input:focus,
+.tool-select:focus {
+	outline: 2px solid var(--color-link);
+	outline-offset: 1px;
+	border-color: var(--color-link);
+}
+
+.tool-row {
+	display: flex;
+	gap: var(--space-sm);
+	align-items: flex-end;
+}
+
+.tool-row .tool-field {
+	flex: 1;
+}
+
+.tool-check {
+	display: flex;
+	align-items: center;
+	gap: var(--space-xs);
+	font-size: var(--text-body-sm-size);
+	color: var(--color-body);
+	cursor: pointer;
+}
+
+.tool-range {
+	display: block;
+	width: 100%;
+	accent-color: var(--color-primary);
+	cursor: pointer;
+}
+
+.tool-range-value {
+	font-family: var(--font-mono);
+	font-size: var(--text-caption-mono-size);
+	color: var(--color-ink);
+}
+
+/* Header row for a slider: label on the left, live value on the right. */
+.tool-slider-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-sm);
+}
+
+/* Segmented button row (rotate/flip presets, unit modes) */
+.tool-segments {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xs);
+}
+
+.tool-seg {
+	font-family: var(--font-sans);
+	font-size: var(--text-body-sm-size);
+	font-weight: 500;
+	color: var(--color-ink);
+	background: var(--color-canvas);
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-pill-sm);
+	padding: var(--space-xs) var(--space-md);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.tool-seg:hover {
+	border-color: var(--color-ink);
+}
+
+.tool-seg[aria-pressed='true'] {
+	background: var(--color-primary);
+	color: var(--color-on-primary);
+	border-color: var(--color-primary);
+}
+
+.tool-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-md);
+	margin-top: var(--space-xl);
+}
+
+.tool-primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-xs);
+	font-family: var(--font-sans);
+	font-size: var(--text-button-lg-size);
+	font-weight: var(--text-button-lg-weight);
+	line-height: var(--text-button-lg-leading);
+	color: var(--color-on-primary);
+	background: var(--color-primary);
+	border: none;
+	border-radius: var(--radius-pill);
+	padding: var(--space-sm) var(--space-lg);
+	text-decoration: none;
+	cursor: pointer;
+	box-shadow: var(--shadow-level-2);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: var(--shadow-level-3);
+}
+
+.tool-primary:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.tool-ghost {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--font-sans);
+	font-size: var(--text-body-sm-strong-size);
+	font-weight: var(--text-body-sm-strong-weight);
+	color: var(--color-ink);
+	background: var(--color-canvas);
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	padding: var(--space-xs) var(--space-sm);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.tool-ghost:hover {
+	border-color: var(--color-ink);
+}
+
+/* Working / spinner */
+.tool-stage-work {
+	text-align: center;
+	padding: var(--space-2xl) 0;
+}
+
+.tool-spinner {
+	width: 56px;
+	height: 56px;
+	margin: 0 auto var(--space-md);
+	border: 4px solid var(--color-hairline);
+	border-top-color: var(--color-primary);
+	border-radius: var(--radius-full);
+	animation: tool-spin 0.9s linear infinite;
+}
+
+@keyframes tool-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.tool-work-label {
+	font-size: var(--text-body-sm-strong-size);
+	font-weight: var(--text-body-sm-strong-weight);
+	color: var(--color-ink);
+}
+
+.tool-work-sub {
+	font-family: var(--font-mono);
+	font-size: var(--text-caption-mono-size);
+	color: var(--color-mute);
+	margin-top: var(--space-xs);
+}
+
+/* Done */
+.tool-stage-done {
+	text-align: center;
+	padding: var(--space-lg) 0;
+}
+
+.tool-done-badge {
+	display: flex;
+	justify-content: center;
+	margin-bottom: var(--space-md);
+}
+
+.tool-done-title {
+	font-size: var(--text-body-sm-strong-size);
+	font-weight: var(--text-body-sm-strong-weight);
+	color: var(--color-ink);
+	margin-bottom: var(--space-xs);
+}
+
+.tool-done-meta {
+	font-size: var(--text-body-sm-size);
+	color: var(--color-mute);
+	margin-bottom: var(--space-lg);
+}
+
+.tool-saving {
+	color: var(--color-primary);
+	font-weight: var(--text-body-sm-strong-weight);
+}
+
+.tool-download {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-xs);
+	font-family: var(--font-sans);
+	font-size: var(--text-button-lg-size);
+	font-weight: var(--text-button-lg-weight);
+	color: var(--color-on-primary);
+	background: var(--color-primary);
+	border: none;
+	border-radius: var(--radius-pill);
+	padding: var(--space-sm) var(--space-lg);
+	text-decoration: none;
+	box-shadow: var(--shadow-level-3);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-download:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-level-4);
+}
+
+.tool-error-msg {
+	font-size: var(--text-body-sm-size);
+	color: var(--color-error-deep);
+	margin-bottom: var(--space-md);
+}
+
+/* Crop overlay */
+.tool-crop-stage {
+	position: relative;
+	display: inline-block;
+	max-width: 100%;
+	touch-action: none;
+	user-select: none;
+}
+
+.tool-crop-stage img {
+	display: block;
+	max-width: 100%;
+	max-height: 420px;
+	pointer-events: none;
+}
+
+.tool-crop-shade {
+	position: absolute;
+	inset: 0;
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+	border: 1px solid var(--color-on-primary);
+	cursor: move;
+}
+
+.tool-crop-handle {
+	position: absolute;
+	width: 12px;
+	height: 12px;
+	background: var(--color-primary);
+	border: 2px solid var(--color-on-primary);
+	border-radius: 2px;
+}
+
+/* Color picker readout */
+.tool-swatch {
+	width: 100%;
+	height: 72px;
+	border-radius: var(--radius-md);
+	border: 1px solid var(--color-hairline);
+}
+
+.tool-swatch-value {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-sm);
+	font-family: var(--font-mono);
+	font-size: var(--text-body-sm-size);
+	color: var(--color-ink);
+	padding: var(--space-xs) var(--space-sm);
+	background: var(--color-canvas-soft-2);
+	border-radius: var(--radius-sm);
+}
+
+.tool-copy {
+	font-family: var(--font-sans);
+	font-size: var(--text-caption-size);
+	font-weight: 600;
+	color: var(--color-link);
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.tool-recent {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xs);
+}
+
+.tool-recent-swatch {
+	width: 24px;
+	height: 24px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-hairline);
+	cursor: pointer;
+	padding: 0;
+}
+
+/* Multi-file list (PDF merge / page tools) */
+.tool-filelist {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xs);
+	margin-bottom: var(--space-lg);
+}
+
+.tool-fileitem {
+	display: flex;
+	align-items: center;
+	gap: var(--space-sm);
+	padding: var(--space-xs) var(--space-sm);
+	background: var(--color-canvas-soft-2);
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	font-size: var(--text-body-sm-size);
+	color: var(--color-ink);
+}
+
+.tool-fileitem .tool-fileitem-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1;
+}
+
+.tool-iconbtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	background: var(--color-canvas);
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	color: var(--color-body);
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.tool-iconbtn:hover {
+	border-color: var(--color-ink);
+	color: var(--color-ink);
+}
+
+.tool-iconbtn:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+/* PDF page thumbnail grid (split / remove / extract / organize) */
+.tool-pagegrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+	gap: var(--space-md);
+	max-height: 460px;
+	overflow-y: auto;
+	padding: var(--space-xs);
+}
+
+.tool-page {
+	position: relative;
+	border: 2px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+	cursor: pointer;
+	background: var(--color-canvas);
+}
+
+.tool-page canvas,
+.tool-page img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.tool-page[aria-pressed='true'] {
+	border-color: var(--color-primary);
+	box-shadow: var(--shadow-level-2);
+}
+
+.tool-page-num {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	font-size: var(--text-caption-size);
+	text-align: center;
+	background: var(--color-chrome);
+	color: var(--color-chrome-fg);
+	padding: 2px 0;
+}
+
+.tool-page-check {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 18px;
+	height: 18px;
+	border-radius: var(--radius-full);
+	background: var(--color-primary);
+	color: var(--color-on-primary);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+}
+
+.tool-page[aria-pressed='true'] .tool-page-check {
+	display: flex;
+}

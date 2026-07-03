@@ -4,7 +4,10 @@ import NavBar from '../components/NavBar.astro';
 import Footer from '../components/Footer.astro';
 import PageHeader from '../components/PageHeader.astro';
 
-const CONTACT_EMAIL = 'hello@formart.app';
+// Formspree endpoint. Submissions are forwarded to the site owner's inbox by
+// Formspree — the destination address is configured on Formspree's side and is
+// deliberately NOT exposed anywhere on the page.
+const FORM_ENDPOINT = 'https://formspree.io/f/mgojpyvj';
 ---
 
 <Layout title="Contact us — Free Format Convert" description="Get in touch with the Free Format Convert team — questions, bug reports, and feedback welcome.">
@@ -16,33 +19,113 @@ const CONTACT_EMAIL = 'hello@formart.app';
 		/>
 		<section class="contact-body">
 			<div class="container contact-grid">
-				<form class="contact-form" action={`mailto:${CONTACT_EMAIL}`} method="POST" enctype="text/plain">
-					<p class="form-note">Filling this out opens your email app with the message pre-filled — nothing is sent from this page.</p>
-					<label class="field">
-						<span class="field-label">Name</span>
-						<input class="field-input" type="text" name="name" required autocomplete="name" />
-					</label>
-					<label class="field">
-						<span class="field-label">Email</span>
-						<input class="field-input" type="email" name="email" required autocomplete="email" />
-					</label>
-					<label class="field">
-						<span class="field-label">Message</span>
-						<textarea class="field-input field-textarea" name="message" rows="5" required></textarea>
-					</label>
-					<button type="submit" class="button-primary">Send message</button>
-				</form>
+				<div class="contact-panel" data-contact>
+					<form class="contact-form" action={FORM_ENDPOINT} method="POST" data-contact-form>
+						<p class="form-note">Your message is sent securely — nothing about your files leaves your browser.</p>
+						<label class="field">
+							<span class="field-label">Name</span>
+							<input class="field-input" type="text" name="name" required autocomplete="name" />
+						</label>
+						<label class="field">
+							<span class="field-label">Email</span>
+							<input class="field-input" type="email" name="email" required autocomplete="email" />
+						</label>
+						<label class="field">
+							<span class="field-label">Message</span>
+							<textarea class="field-input field-textarea" name="message" rows="5" required></textarea>
+						</label>
+						<!-- Honeypot: bots fill this, humans never see it. Formspree drops these. -->
+						<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot" />
+						<button type="submit" class="button-primary" data-submit>Send message</button>
+						<p class="form-error" data-form-error role="alert" hidden></p>
+					</form>
+
+					<div class="contact-success" data-contact-success hidden>
+						<span class="success-check-wrap">
+							<svg class="success-check" viewBox="0 0 52 52" aria-hidden="true">
+								<circle class="success-check-circle" cx="26" cy="26" r="24" fill="none" />
+								<path class="success-check-mark" fill="none" d="M15 27 l7 7 l15 -15" />
+							</svg>
+						</span>
+						<h2 class="success-title">Message sent</h2>
+						<p class="success-text">Thanks for reaching out — we've got your message and will reply by email soon.</p>
+						<button type="button" class="link-secondary" data-reset>Send another message</button>
+					</div>
+				</div>
 
 				<aside class="contact-aside">
-					<p class="aside-label">Prefer email?</p>
-					<a class="aside-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-					<p class="aside-note">We typically reply within a couple of business days.</p>
+					<p class="aside-label">What to expect</p>
+					<ul class="aside-list">
+						<li>We usually reply within a couple of business days.</li>
+						<li>Reporting a bug? Tell us the file type, your browser, and what you were converting.</li>
+						<li>Requesting a format? Let us know what you're converting from and to.</li>
+					</ul>
 				</aside>
 			</div>
 		</section>
 	</main>
 	<Footer />
 </Layout>
+
+<script>
+	const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+	if (form) {
+		const panel = form.closest('[data-contact]');
+		const successEl = panel?.querySelector<HTMLElement>('[data-contact-success]');
+		const errorEl = form.querySelector<HTMLElement>('[data-form-error]');
+		const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]');
+		const resetBtn = panel?.querySelector<HTMLButtonElement>('[data-reset]');
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			if (errorEl) errorEl.hidden = true;
+			if (submitBtn) {
+				submitBtn.disabled = true;
+				submitBtn.textContent = 'Sending…';
+			}
+
+			try {
+				const response = await fetch(form.action, {
+					method: 'POST',
+					body: new FormData(form),
+					headers: { Accept: 'application/json' },
+				});
+
+				if (response.ok) {
+					form.reset();
+					form.hidden = true;
+					if (successEl) successEl.hidden = false;
+					return;
+				}
+
+				const data = await response.json().catch(() => null);
+				const message =
+					data && Array.isArray(data.errors)
+						? data.errors.map((e: { message: string }) => e.message).join(', ')
+						: 'Something went wrong. Please try again.';
+				throw new Error(message);
+			} catch (err) {
+				if (errorEl) {
+					errorEl.textContent =
+						err instanceof Error && err.message
+							? err.message
+							: 'Could not send your message. Please check your connection and try again.';
+					errorEl.hidden = false;
+				}
+			} finally {
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Send message';
+				}
+			}
+		});
+
+		resetBtn?.addEventListener('click', () => {
+			if (successEl) successEl.hidden = true;
+			form.hidden = false;
+		});
+	}
+</script>
 
 <style>
 	.contact-body {
@@ -56,6 +139,10 @@ const CONTACT_EMAIL = 'hello@formart.app';
 		align-items: start;
 	}
 
+	.contact-panel {
+		min-width: 0;
+	}
+
 	.contact-form {
 		display: flex;
 		flex-direction: column;
@@ -64,6 +151,10 @@ const CONTACT_EMAIL = 'hello@formart.app';
 		border-radius: var(--radius-lg);
 		padding: var(--space-xl);
 		box-shadow: var(--shadow-level-3);
+	}
+
+	.contact-form[hidden] {
+		display: none;
 	}
 
 	.form-note {
@@ -107,11 +198,145 @@ const CONTACT_EMAIL = 'hello@formart.app';
 		outline-offset: 1px;
 	}
 
+	/* Spam honeypot — visually and semantically hidden, but still submitted. */
+	.honeypot {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	.contact-form .button-primary {
 		margin-top: var(--space-xs);
 		align-self: flex-start;
 	}
 
+	.contact-form .button-primary:disabled {
+		opacity: 0.6;
+		cursor: default;
+	}
+
+	.form-error {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-error-deep);
+		background: var(--color-error-soft);
+		border-radius: var(--radius-sm);
+		padding: var(--space-xs) var(--space-sm);
+		margin: 0;
+	}
+
+	.form-error[hidden] {
+		display: none;
+	}
+
+	/* Success state */
+	.contact-success {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: var(--space-sm);
+		background: var(--color-canvas);
+		border-radius: var(--radius-lg);
+		padding: var(--space-3xl) var(--space-xl);
+		box-shadow: var(--shadow-level-3);
+		animation: success-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.contact-success[hidden] {
+		display: none;
+	}
+
+	@keyframes success-rise {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	.success-check-wrap {
+		display: inline-flex;
+		margin-bottom: var(--space-xs);
+	}
+
+	.success-check {
+		width: 76px;
+		height: 76px;
+	}
+
+	.success-check-circle {
+		stroke: var(--color-success);
+		stroke-width: 3;
+		stroke-dasharray: 151; /* 2πr, r=24 */
+		stroke-dashoffset: 151;
+		animation: check-circle 0.5s ease-out forwards;
+	}
+
+	.success-check-mark {
+		stroke: var(--color-success);
+		stroke-width: 4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-dasharray: 40;
+		stroke-dashoffset: 40;
+		animation: check-mark 0.3s 0.42s ease-out forwards;
+	}
+
+	@keyframes check-circle {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes check-mark {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	.success-title {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		color: var(--color-ink);
+	}
+
+	.success-text {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-body);
+		max-width: 34ch;
+	}
+
+	.contact-success .link-secondary {
+		margin-top: var(--space-xs);
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-link);
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+	}
+
+	.contact-success .link-secondary:hover {
+		color: var(--color-link-deep);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.contact-success,
+		.success-check-circle,
+		.success-check-mark {
+			animation-duration: 0.01ms;
+			animation-delay: 0ms;
+		}
+	}
+
+	/* Aside */
 	.contact-aside {
 		background: var(--color-canvas-soft);
 		border-radius: var(--radius-lg);
@@ -122,20 +347,35 @@ const CONTACT_EMAIL = 'hello@formart.app';
 		font-size: var(--text-body-sm-strong-size);
 		font-weight: var(--text-body-sm-strong-weight);
 		color: var(--color-ink);
-		margin-bottom: var(--space-xs);
-	}
-
-	.aside-email {
-		display: block;
-		font-size: var(--text-body-md-size);
-		color: var(--color-link);
 		margin-bottom: var(--space-sm);
-		word-break: break-all;
 	}
 
-	.aside-note {
+	.aside-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+
+	.aside-list li {
+		position: relative;
+		padding-left: var(--space-md);
 		font-size: var(--text-body-sm-size);
 		color: var(--color-body);
+		line-height: 1.5;
+	}
+
+	.aside-list li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.5em;
+		width: 6px;
+		height: 6px;
+		border-radius: var(--radius-full);
+		background: var(--color-link);
 	}
 
 	@media (max-width: 767px) {

@@ -1,0 +1,34 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/rotate-image', label: 'Rotate Image' },
+	{ href: '/crop-image', label: 'Crop Image' },
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/compress-image', label: 'Compress Image' },
+];
+---
+
+<ToolLanding
+	title="Flip Image — Free Online Image Flipper | Free Format Convert"
+	description="Mirror JPG, PNG, WebP, GIF and SVG images horizontally or vertically in your browser. No upload, no watermark, no sign-up — your image never leaves your device."
+	canonical="/flip-image"
+	heading="Flip Image"
+	subtitle="Mirror your image horizontally, vertically, or both, then download. Everything runs on your device."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="flip" actionLabel="Flip image" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Flip and mirror images</h2>
+				<p>
+					Choose horizontal to mirror left-to-right, vertical to flip top-to-bottom, or both for a 180° mirror.
+					The preview updates instantly and the final image is rendered locally in your browser with no upload.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

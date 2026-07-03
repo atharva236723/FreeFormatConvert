@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import MediaTool from '../components/MediaTool.astro';
+
+const related = [
+	{ href: '/compress-video', label: 'Compress Video' },
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/mp4-to-gif', label: 'MP4 to GIF' },
+	{ href: '/gif-to-mp4', label: 'GIF to MP4' },
+	{ href: '/video-to-gif', label: 'Video to GIF' },
+];
+---
+
+<ToolLanding
+	title="Compress GIF — Free Online GIF Compressor | Free Format Convert"
+	description="Reduce animated GIF file size in your browser by scaling down and lowering the frame rate. No upload, no watermark, no sign-up — your GIF never leaves your device."
+	canonical="/compress-gif"
+	heading="Compress GIF"
+	subtitle="Scale down and drop frames to make a lighter animated GIF. Everything runs on your device."
+	relatedTitle="Related media tools"
+	related={related}
+>
+	<MediaTool mode="compress-gif" actionLabel="Compress GIF" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Shrink animated GIFs</h2>
+				<p>
+					GIFs get large quickly. Reduce the pixel size, the frame rate, or both, and the tool re-encodes the
+					animation with an optimized color palette in your browser. Nothing is uploaded — the whole process runs
+					on your device.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

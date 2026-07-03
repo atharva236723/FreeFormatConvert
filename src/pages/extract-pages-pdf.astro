@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import PdfTool from '../components/PdfTool.astro';
+
+const related = [
+	{ href: '/remove-pages-pdf', label: 'Remove PDF Pages' },
+	{ href: '/split-pdf', label: 'Split PDF' },
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+	{ href: '/rotate-pdf', label: 'Rotate PDF' },
+	{ href: '/pdf-to-jpg', label: 'PDF to JPG' },
+];
+---
+
+<ToolLanding
+	title="Extract PDF Pages — Pull Pages From a PDF Free | Free Format Convert"
+	description="Extract specific pages from a PDF into a new document, right in your browser. Select the pages to keep and download — no upload, no watermark, no sign-up."
+	canonical="/extract-pages-pdf"
+	heading="Extract PDF Pages"
+	subtitle="Pick the pages you want and save them as a new PDF. Everything runs on your device — your PDF is never uploaded."
+	relatedTitle="More PDF tools"
+	related={related}
+>
+	<PdfTool mode="extract" actionLabel="Extract pages" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Extract pages from a PDF</h2>
+				<p>
+					Click the pages you want to keep in the thumbnail grid, and the tool builds a new PDF containing only
+					those pages, in order. It's the quick way to pull a chapter or a few pages out of a larger document —
+					all locally in your browser.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

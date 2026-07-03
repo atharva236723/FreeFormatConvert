@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import PdfTool from '../components/PdfTool.astro';
+
+const related = [
+	{ href: '/extract-pages-pdf', label: 'Extract PDF Pages' },
+	{ href: '/split-pdf', label: 'Split PDF' },
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+	{ href: '/rotate-pdf', label: 'Rotate PDF' },
+	{ href: '/pdf-to-jpg', label: 'PDF to JPG' },
+];
+---
+
+<ToolLanding
+	title="Remove PDF Pages — Delete Pages From a PDF Free | Free Format Convert"
+	description="Delete unwanted pages from a PDF in your browser. Pick the pages to remove and download the trimmed PDF — no upload, no watermark, no sign-up."
+	canonical="/remove-pages-pdf"
+	heading="Remove PDF Pages"
+	subtitle="Delete the pages you don't need and keep the rest. Everything runs on your device — your PDF is never uploaded."
+	relatedTitle="More PDF tools"
+	related={related}
+>
+	<PdfTool mode="remove" actionLabel="Remove pages" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Delete pages from a PDF</h2>
+				<p>
+					Each page appears as a thumbnail — click the ones you want to remove, then download a new PDF with only
+					the pages you kept. The original file stays untouched on your device, and nothing is uploaded.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

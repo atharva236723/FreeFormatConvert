@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import PdfTool from '../components/PdfTool.astro';
+
+const related = [
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+	{ href: '/extract-pages-pdf', label: 'Extract PDF Pages' },
+	{ href: '/remove-pages-pdf', label: 'Remove PDF Pages' },
+	{ href: '/rotate-pdf', label: 'Rotate PDF' },
+	{ href: '/pdf-to-jpg', label: 'PDF to JPG' },
+];
+---
+
+<ToolLanding
+	title="Split PDF — Separate PDF Pages Online Free | Free Format Convert"
+	description="Split a PDF into separate single-page files in your browser. Pick pages or split them all, then download a ZIP — no upload, no watermark, no sign-up."
+	canonical="/split-pdf"
+	heading="Split PDF"
+	subtitle="Turn a PDF into individual pages. Select the pages you want, or split them all, and download them as a ZIP. Everything runs on your device."
+	relatedTitle="More PDF tools"
+	related={related}
+>
+	<PdfTool mode="split" actionLabel="Split PDF" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Split a PDF into pages</h2>
+				<p>
+					Every page is shown as a thumbnail. Choose the pages you want to pull out — or leave them all
+					unselected to split the entire document — and each becomes its own PDF, delivered together in a ZIP
+					archive. The split happens locally in your browser.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

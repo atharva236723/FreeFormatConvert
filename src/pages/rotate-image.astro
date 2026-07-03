@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/flip-image', label: 'Flip Image' },
+	{ href: '/crop-image', label: 'Crop Image' },
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/compress-image', label: 'Compress Image' },
+];
+---
+
+<ToolLanding
+	title="Rotate Image — Free Online Image Rotator | Free Format Convert"
+	description="Rotate JPG, PNG, WebP, GIF and SVG images by 90°, 180° or any angle in your browser. No upload, no watermark, no sign-up — your image never leaves your device."
+	canonical="/rotate-image"
+	heading="Rotate Image"
+	subtitle="Turn by 90° steps or fine-tune to any angle, then download. Everything runs on your device."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="rotate" actionLabel="Rotate image" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Rotate images to any angle</h2>
+				<p>
+					Use the quick buttons to rotate 90° left, 90° right, or 180°, or drag the fine-angle slider for any
+					rotation in between. The canvas grows to fit the rotated image so nothing is cut off, and the whole
+					operation happens locally in your browser.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

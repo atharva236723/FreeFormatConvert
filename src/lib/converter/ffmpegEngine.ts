@@ -93,6 +93,118 @@ async function execWithTimeout(ffmpeg: FFmpegInstance, args: string[], timeoutMs
 	}
 }
 
+export interface FFmpegRunOptions {
+	onProgress?: (ratio: number) => void;
+	/** Override the size-derived timeout (e.g. a trim that only touches part of a large file). */
+	timeoutMs?: number;
+}
+
+/**
+ * Low-level escape hatch used by the standalone media tools (compress / trim in tools/mediaTools.ts).
+ * Reuses the same lazily-loaded ffmpeg singleton, progress plumbing, size-scaled timeout, and
+ * engine-reset-on-fault logic as transcode(), but lets the caller build the exact argument list.
+ * `buildArgs` receives the in-wasm input/output filenames and must include both in the returned args.
+ */
+export async function runFFmpeg(
+	file: File,
+	buildArgs: (inputName: string, outputName: string) => string[],
+	outputExt: string,
+	opts: FFmpegRunOptions = {},
+): Promise<Blob> {
+	const sourceExt = getExtension(file.name) || 'bin';
+	const inputName = `input.${sourceExt}`;
+	const outputName = `output.${outputExt}`;
+
+	const ffmpeg = await getFFmpeg();
+	lastLogLine = '';
+
+	try {
+		const { fetchFile } = await import('@ffmpeg/util');
+		await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+		const args = buildArgs(inputName, outputName);
+		currentProgressHandler = opts.onProgress ?? null;
+
+		let exitCode: number | void;
+		try {
+			exitCode = await execWithTimeout(ffmpeg, args, opts.timeoutMs ?? computeTimeoutMs(file.size));
+		} catch (err) {
+			await resetEngine();
+			throw err;
+		}
+
+		const failMessage = lastLogLine
+			? `This file couldn't be processed: ${lastLogLine}`
+			: 'This file could not be processed. It may be corrupt or in an unexpected format.';
+
+		if (typeof exitCode === 'number' && exitCode !== 0) {
+			throw new ConversionError('unsupported-pair', failMessage);
+		}
+
+		let data: Uint8Array;
+		try {
+			data = (await ffmpeg.readFile(outputName)) as Uint8Array;
+		} catch {
+			throw new ConversionError('unsupported-pair', failMessage);
+		}
+
+		return new Blob([data as BlobPart], { type: findMimeForExt(outputExt) });
+	} finally {
+		currentProgressHandler = null;
+		try {
+			await ffmpeg.deleteFile(inputName);
+		} catch {
+			/* input may never have been written */
+		}
+		try {
+			await ffmpeg.deleteFile(outputName);
+		} catch {
+			/* output may never have been created */
+		}
+	}
+}
+
+/**
+ * Probe a media file's duration in seconds without fully decoding it, by running ffmpeg with no
+ * output file and parsing the "Duration:" banner it prints to the log. The trim tool uses this as a
+ * fallback when the browser can't decode a container (AVI/WMV/FLV, some MKV/MOV) and so a `<video>`
+ * element never reports a duration. Returns null when no duration can be parsed.
+ */
+export async function probeDuration(file: File): Promise<number | null> {
+	const sourceExt = getExtension(file.name) || 'bin';
+	const inputName = `probe-input.${sourceExt}`;
+	const ffmpeg = await getFFmpeg();
+
+	let log = '';
+	const capture = ({ message }: { message: string }) => {
+		log += `${message}\n`;
+	};
+	ffmpeg.on('log', capture);
+	try {
+		const { fetchFile } = await import('@ffmpeg/util');
+		await ffmpeg.writeFile(inputName, await fetchFile(file));
+		// No output file: ffmpeg prints the input's Duration banner then exits with an argument
+		// error ("At least one output file must be specified"). That's a clean exit, not a wasm
+		// fault, so the singleton stays usable for the real trim that follows.
+		try {
+			await ffmpeg.exec(['-i', inputName]);
+		} catch {
+			/* expected non-zero exit */
+		}
+		const m = log.match(/Duration:\s*(\d+):(\d\d):(\d\d(?:\.\d+)?)/);
+		if (!m) return null;
+		const seconds = Number(m[1]) * 3600 + Number(m[2]) * 60 + parseFloat(m[3]);
+		return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+	} finally {
+		ffmpeg.off('log', capture);
+		try {
+			await ffmpeg.deleteFile(inputName);
+		} catch {
+			/* input may never have been written */
+		}
+	}
+}
+
 export interface TranscodeOptions {
 	extractAudioOnly?: boolean;
 	onProgress?: (ratio: number) => void;

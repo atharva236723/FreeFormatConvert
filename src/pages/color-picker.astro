@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/crop-image', label: 'Crop Image' },
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/rotate-image', label: 'Rotate Image' },
+];
+---
+
+<ToolLanding
+	title="Color Picker — Pick Colors From an Image | Free Format Convert"
+	description="Upload an image and click to grab any pixel's HEX and RGB color. Works entirely in your browser — no upload, no sign-up. Your image never leaves your device."
+	canonical="/color-picker"
+	heading="Image Color Picker"
+	subtitle="Click anywhere on your image to sample its exact HEX and RGB color, and copy it in one tap. Everything runs on your device."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="colorpicker" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Pick colors from any image</h2>
+				<p>
+					Load an image and click anywhere on it to read the pixel's color as both a HEX code and RGB values.
+					Copy either with one click, and your last dozen picks stay as swatches you can revisit. The image is
+					decoded locally in your browser, so nothing is uploaded.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

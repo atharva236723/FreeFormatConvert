@@ -23,13 +23,24 @@ const convertColumns = CATEGORY_ORDER.map((category) => ({
 })).filter((column) => column.pairs.length > 0);
 
 // Category hub pages (not (source → target) pairs).
-const toolLinks = [
+const convertLinks = [
 	{ href: '/pdf-converter', label: 'PDF converter' },
 	{ href: '/document-converter', label: 'Document converter' },
 	{ href: '/ebook-converter', label: 'Ebook converter' },
 	{ href: '/video-to-gif', label: 'Video to GIF' },
 	{ href: '/image-to-gif', label: 'Image to GIF' },
 	{ href: '/conversions', label: 'All conversions' },
+];
+
+// Standalone editing tools (compress / resize / PDF / convert), in sync with tools/registry.ts.
+const toolLinks = [
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/compress-video', label: 'Compress Video' },
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+	{ href: '/trim-video', label: 'Trim Video' },
+	{ href: '/unit-converter', label: 'Unit Converter' },
+	{ href: '/tools', label: 'All tools' },
 ];
 
 const companyLinks = [
@@ -67,6 +78,14 @@ const companyLinks = [
 					</div>
 				))
 			}
+			<div class="footer-col">
+				<p class="footer-col-title">Convert</p>
+				<ul>
+					{convertLinks.map((link) => (
+						<li><a href={link.href}>{link.label}</a></li>
+					))}
+				</ul>
+			</div>
 			<div class="footer-col">
 				<p class="footer-col-title">Tools</p>
 				<ul>
@@ -124,7 +143,7 @@ const companyLinks = [
 
 	.footer-cols {
 		display: grid;
-		grid-template-columns: repeat(6, minmax(0, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
 		gap: var(--space-lg);
 	}
 

@@ -1,0 +1,98 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Footer from '../components/Footer.astro';
+import { TOOL_GROUPS } from '../lib/tools/registry';
+---
+
+<Layout
+	title="All Tools — Compress, Resize, PDF & Convert | Free Format Convert"
+	description="Every Free Format Convert tool in one place: compress images, video, audio and GIFs; resize, crop, rotate and flip images; merge, split and edit PDFs; trim video; and convert units — all in your browser."
+	canonical="/tools"
+>
+	<NavBar />
+	<PageHeader
+		title="Tools"
+		subtitle="Compress, edit and convert files without uploading them. Every tool runs entirely in your browser — no sign-up, no watermarks, nothing leaves your device."
+	/>
+	<main class="container tools-main">
+		{
+			TOOL_GROUPS.map((group) => (
+				<section class="tool-group">
+					<h2 class="tool-group-title">{group.title}</h2>
+					<ul class="tool-cards">
+						{group.tools.map((tool) => (
+							<li>
+								<a class="tool-card" href={tool.href}>
+									<span class="tool-card-name">{tool.label}</span>
+									<span class="tool-card-desc">{tool.desc}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			))
+		}
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.tools-main {
+		padding-bottom: var(--space-5xl);
+	}
+
+	.tool-group {
+		margin-bottom: var(--space-3xl);
+	}
+
+	.tool-group-title {
+		font-size: var(--text-display-sm-size);
+		font-weight: var(--text-display-sm-weight);
+		line-height: var(--text-display-sm-leading);
+		letter-spacing: var(--text-display-sm-tracking);
+		color: var(--color-ink);
+		margin-bottom: var(--space-lg);
+	}
+
+	.tool-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: var(--space-md);
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.tool-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xs);
+		height: 100%;
+		padding: var(--space-lg);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-md);
+		text-decoration: none;
+		box-shadow: var(--shadow-level-1);
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.tool-card:hover {
+		border-color: var(--color-hairline-strong);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	.tool-card-name {
+		font-size: var(--text-body-md-strong-size);
+		font-weight: var(--text-body-md-strong-weight);
+		color: var(--color-ink);
+	}
+
+	.tool-card-desc {
+		font-size: var(--text-body-sm-size);
+		color: var(--color-mute);
+	}
+</style>

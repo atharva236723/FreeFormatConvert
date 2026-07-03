@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import PdfTool from '../components/PdfTool.astro';
+
+const related = [
+	{ href: '/split-pdf', label: 'Split PDF' },
+	{ href: '/rotate-pdf', label: 'Rotate PDF' },
+	{ href: '/remove-pages-pdf', label: 'Remove PDF Pages' },
+	{ href: '/extract-pages-pdf', label: 'Extract PDF Pages' },
+	{ href: '/jpg-to-pdf', label: 'JPG to PDF' },
+];
+---
+
+<ToolLanding
+	title="Merge PDF — Combine PDF Files Online Free | Free Format Convert"
+	description="Combine two or more PDF files into one, right in your browser. Reorder pages, then download the merged PDF — no upload, no watermark, no sign-up. Files never leave your device."
+	canonical="/merge-pdf"
+	heading="Merge PDF"
+	subtitle="Add several PDFs, drag them into order, and combine them into a single file. Everything runs on your device."
+	relatedTitle="More PDF tools"
+	related={related}
+>
+	<PdfTool mode="merge" actionLabel="Merge PDFs" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Combine PDFs privately</h2>
+				<p>
+					Add all the PDFs you want to join, reorder them so the pages come out in the sequence you need, and
+					click merge. The files are combined in your browser with pdf-lib and never uploaded to a server, so
+					even sensitive documents stay on your device.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

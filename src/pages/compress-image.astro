@@ -1,0 +1,42 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/crop-image', label: 'Crop Image' },
+	{ href: '/rotate-image', label: 'Rotate Image' },
+	{ href: '/png-to-jpg', label: 'PNG to JPG' },
+	{ href: '/webp-to-jpg', label: 'WebP to JPG' },
+];
+---
+
+<ToolLanding
+	title="Compress Image — Free & Private Image Compressor | Free Format Convert"
+	description="Shrink JPG, PNG and WebP images in your browser. Pick a quality level, preview the saving, and download — no upload, no watermark, no sign-up. Files never leave your device."
+	canonical="/compress-image"
+	heading="Compress Image"
+	subtitle="Reduce your image file size with a quality slider and live size preview. Everything runs on your device — nothing is uploaded."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="compress" actionLabel="Compress image" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Compress images without uploading them</h2>
+				<p>
+					This image compressor re-encodes your photo directly in your browser, so the file never leaves your
+					device. Choose JPEG for the smallest result or WebP for modern, high-quality compression, drag the
+					quality slider, and the tool shows the estimated new size and how much smaller it is before you
+					download.
+				</p>
+				<h2>When to compress</h2>
+				<p>
+					Smaller images load faster on the web, attach to email more easily, and take up less storage. For
+					photos, a quality around 70–80% usually cuts the file size dramatically with no visible loss.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

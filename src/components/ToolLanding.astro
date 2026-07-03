@@ -1,0 +1,206 @@
+---
+/**
+ * Shared landing shell for the standalone tools (compressors, image editors, PDF tools,
+ * converters). Mirrors ConversionLanding's chrome — hero heading, privacy badge, related
+ * links, FeatureStrip/HowItWorks — but takes the actual tool widget as its default slot so
+ * one template serves every tool. Optional `seo` slot renders long-form copy for search.
+ */
+import Layout from '../layouts/Layout.astro';
+import NavBar from './NavBar.astro';
+import FeatureStrip from './FeatureStrip.astro';
+import HowItWorks from './HowItWorks.astro';
+import Footer from './Footer.astro';
+
+interface RelatedLink {
+	href: string;
+	label: string;
+}
+
+interface Props {
+	title: string;
+	description: string;
+	canonical: string;
+	heading: string;
+	subtitle: string;
+	relatedTitle?: string;
+	related?: RelatedLink[];
+}
+
+const { title, description, canonical, heading, subtitle, relatedTitle = 'Related tools', related = [] } = Astro.props;
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+	<NavBar />
+	<main>
+		<section class="hero">
+			<div class="hero-bg" aria-hidden="true"></div>
+			<div class="container hero-inner">
+				<h1 class="hero-title">{heading}</h1>
+				<p class="hero-sub">{subtitle}</p>
+				<div class="hero-tool">
+					<slot />
+				</div>
+			</div>
+		</section>
+
+		{
+			related.length > 0 && (
+				<section class="related">
+					<div class="container">
+						<h2 class="related-title">{relatedTitle}</h2>
+						<ul class="related-grid">
+							{related.map((r) => (
+								<li>
+									<a class="related-chip" href={r.href}>
+										{r.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				</section>
+			)
+		}
+
+		<slot name="seo" />
+
+		<FeatureStrip />
+		<HowItWorks />
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.hero {
+		position: relative;
+		isolation: isolate;
+		padding: var(--space-4xl) 0 var(--space-2xl);
+	}
+
+	.hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.hero-bg::before {
+		content: '';
+		position: absolute;
+		top: -320px;
+		left: 50%;
+		width: min(1200px, 130%);
+		height: 760px;
+		transform: translateX(-50%);
+		background:
+			radial-gradient(38% 56% at 28% 42%, rgba(0, 124, 240, 0.28), transparent 70%),
+			radial-gradient(42% 56% at 72% 44%, rgba(121, 40, 202, 0.24), transparent 70%),
+			radial-gradient(36% 46% at 50% 68%, rgba(0, 223, 216, 0.22), transparent 70%);
+		filter: blur(56px);
+		opacity: 0.85;
+	}
+
+	:global(html[data-theme='dark']) .hero-bg::before {
+		opacity: 1;
+	}
+
+	.hero-inner {
+		text-align: center;
+	}
+
+	.hero-title {
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 4.8vw, 3.4rem);
+		font-weight: 700;
+		line-height: 1.06;
+		letter-spacing: -0.03em;
+		margin-bottom: var(--space-md);
+		text-wrap: balance;
+		background: linear-gradient(
+			100deg,
+			var(--color-gradient-develop-start) 0%,
+			var(--color-gradient-develop-end) 26%,
+			var(--color-gradient-preview-start) 52%,
+			var(--color-highlight-pink) 74%,
+			var(--color-gradient-develop-start) 100%
+		);
+		background-size: 200% auto;
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		animation: gradient-pan 8s linear infinite;
+	}
+
+	@keyframes gradient-pan {
+		from {
+			background-position: 0% center;
+		}
+		to {
+			background-position: 200% center;
+		}
+	}
+
+	.hero-sub {
+		font-size: var(--text-body-lg-size);
+		line-height: 1.6;
+		color: var(--color-body);
+		max-width: 580px;
+		margin: 0 auto var(--space-2xl);
+	}
+
+	.related {
+		padding: var(--space-2xl) 0 var(--space-4xl);
+	}
+
+	.related-title {
+		font-size: var(--text-body-sm-strong-size);
+		font-weight: var(--text-body-sm-strong-weight);
+		color: var(--color-mute);
+		text-align: center;
+		margin-bottom: var(--space-md);
+	}
+
+	.related-grid {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-xs);
+		list-style: none;
+		padding: 0;
+		max-width: 680px;
+		margin-inline: auto;
+	}
+
+	.related-chip {
+		display: inline-flex;
+		align-items: center;
+		font-size: var(--text-body-sm-size);
+		font-weight: 500;
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline);
+		border-radius: var(--radius-pill-sm);
+		padding: var(--space-xs) var(--space-md);
+		text-decoration: none;
+		box-shadow: var(--shadow-level-1);
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.related-chip:hover {
+		border-color: var(--color-hairline-strong);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	@media (max-width: 599px) {
+		.hero {
+			padding: var(--space-3xl) 0 var(--space-2xl);
+		}
+
+		.hero-sub {
+			font-size: var(--text-body-md-size);
+		}
+	}
+</style>

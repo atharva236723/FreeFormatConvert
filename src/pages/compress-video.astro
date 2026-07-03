@@ -1,0 +1,41 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import MediaTool from '../components/MediaTool.astro';
+
+const related = [
+	{ href: '/trim-video', label: 'Trim Video' },
+	{ href: '/compress-audio', label: 'Compress Audio' },
+	{ href: '/compress-gif', label: 'Compress GIF' },
+	{ href: '/mp4-to-gif', label: 'MP4 to GIF' },
+	{ href: '/mov-to-mp4', label: 'MOV to MP4' },
+];
+---
+
+<ToolLanding
+	title="Compress Video — Free Online Video Compressor | Free Format Convert"
+	description="Reduce MP4, MOV, MKV, WebM and AVI video file size in your browser. Choose a compression level and download an optimized MP4 — no upload, no watermark, no sign-up."
+	canonical="/compress-video"
+	heading="Compress Video"
+	subtitle="Shrink your video with a simple quality setting. The whole encode runs on your device — your video is never uploaded."
+	relatedTitle="Related media tools"
+	related={related}
+>
+	<MediaTool mode="compress-video" actionLabel="Compress video" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Compress video without uploading</h2>
+				<p>
+					Pick a compression level — higher quality, balanced, or smallest file — and the tool re-encodes your
+					clip to an efficient H.264 MP4 right in your browser using ffmpeg compiled to WebAssembly. Nothing is
+					uploaded to a server, so even large files stay private.
+				</p>
+				<h2>Note on speed</h2>
+				<p>
+					Video encoding in the browser is single-threaded, so large or long clips take a while and the
+					conversion engine downloads once on first use. Smaller and shorter clips finish fastest.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

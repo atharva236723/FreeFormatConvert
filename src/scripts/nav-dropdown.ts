@@ -1,9 +1,19 @@
+// Shared registry of every dropdown's close handler so that opening one can
+// close the others — otherwise two menus can be open (and overlapping) at once,
+// because each trigger stops click propagation and never reaches a sibling's
+// outside-click listener.
+const closers: Array<{ root: HTMLElement; close: () => void }> = [];
+
 function initDropdown(root: HTMLElement) {
 	const trigger = root.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
 	const panel = root.querySelector<HTMLElement>('[data-dropdown-panel]');
 	if (!trigger || !panel) return;
 
 	function open() {
+		// Close any other dropdown before opening this one.
+		for (const other of closers) {
+			if (other.root !== root) other.close();
+		}
 		panel!.hidden = false;
 		trigger!.setAttribute('aria-expanded', 'true');
 	}
@@ -39,6 +49,8 @@ function initDropdown(root: HTMLElement) {
 	panel.addEventListener('click', (event) => {
 		if ((event.target as HTMLElement).closest('a')) close();
 	});
+
+	closers.push({ root, close });
 }
 
 document.querySelectorAll<HTMLElement>('[data-dropdown]').forEach(initDropdown);

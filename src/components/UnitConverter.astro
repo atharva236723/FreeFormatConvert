@@ -1,0 +1,138 @@
+---
+/**
+ * Pure-JS unit converter used by /unit-converter (all categories) and /time-converter
+ * (preset to Time). Initial category + unit <select>s are rendered server-side from units.ts
+ * so the page is meaningful without JS; unit-converter-controller.ts wires live conversion and
+ * rebuilds the unit lists when the category changes.
+ */
+import '../styles/tools.css';
+import { CATEGORIES, findCategory } from '../lib/tools/units';
+
+interface Props {
+	/** Restrict to a single category (e.g. "time"). Omit to show all categories. */
+	preset?: string;
+}
+
+const { preset } = Astro.props;
+const initial = (preset && findCategory(preset)) || CATEGORIES[0];
+const showTabs = !preset;
+---
+
+<unit-converter class="uc" data-preset={preset}>
+	{
+		showTabs && (
+			<div class="tool-segments uc-cats" data-role="cats">
+				{CATEGORIES.map((c) => (
+					<button type="button" class="tool-seg" data-cat={c.id} aria-pressed={c.id === initial.id ? 'true' : 'false'}>
+						{c.name}
+					</button>
+				))}
+			</div>
+		)
+	}
+
+	<div class="uc-panel">
+		<div class="uc-side">
+			<label class="tool-label" for="uc-from-value">From</label>
+			<input id="uc-from-value" class="tool-input" type="number" inputmode="decimal" value="1" data-role="from-value" />
+			<select class="tool-select" data-role="from-unit" aria-label="Convert from unit">
+				{initial.units.map((u) => <option value={u.id}>{u.name}</option>)}
+			</select>
+		</div>
+
+		<button type="button" class="uc-swap" data-role="swap" aria-label="Swap units" title="Swap">
+			<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+				<path d="M7 4v13m0 0-3-3m3 3 3-3M17 20V7m0 0 3 3m-3-3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		</button>
+
+		<div class="uc-side">
+			<label class="tool-label" for="uc-to-value">To</label>
+			<input id="uc-to-value" class="tool-input" type="text" readonly value="" data-role="to-value" />
+			<select class="tool-select" data-role="to-unit" aria-label="Convert to unit">
+				{initial.units.map((u, i) => (
+					<option value={u.id} selected={i === 1}>
+						{u.name}
+					</option>
+				))}
+			</select>
+		</div>
+	</div>
+
+	<p class="uc-formula" data-role="formula"></p>
+</unit-converter>
+
+<script src="../scripts/unit-converter-controller.ts"></script>
+
+<style>
+	.uc {
+		display: block;
+		max-width: 640px;
+		margin-inline: auto;
+		background: var(--color-canvas);
+		border-radius: var(--radius-lg);
+		padding: var(--space-xl);
+		box-shadow: var(--shadow-level-3);
+	}
+
+	.uc-cats {
+		margin-bottom: var(--space-lg);
+		justify-content: center;
+	}
+
+	.uc-panel {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: var(--space-md);
+		align-items: end;
+	}
+
+	.uc-side {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xs);
+	}
+
+	.uc-swap {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		margin-bottom: 2px;
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-hairline-strong);
+		border-radius: var(--radius-full);
+		cursor: pointer;
+		transition: border-color 0.15s ease, transform 0.15s ease;
+	}
+
+	.uc-swap:hover {
+		border-color: var(--color-ink);
+		transform: rotate(90deg);
+	}
+
+	.uc-formula {
+		margin-top: var(--space-lg);
+		text-align: center;
+		font-family: var(--font-mono);
+		font-size: var(--text-body-sm-size);
+		color: var(--color-mute);
+	}
+
+	@media (max-width: 520px) {
+		.uc-panel {
+			grid-template-columns: 1fr;
+		}
+
+		.uc-swap {
+			justify-self: center;
+			transform: rotate(90deg);
+		}
+
+		.uc-swap:hover {
+			transform: rotate(0deg);
+		}
+	}
+</style>

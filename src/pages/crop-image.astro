@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/rotate-image', label: 'Rotate Image' },
+	{ href: '/flip-image', label: 'Flip Image' },
+];
+---
+
+<ToolLanding
+	title="Crop Image — Free Online Image Cropper | Free Format Convert"
+	description="Crop JPG, PNG, WebP, GIF and SVG images with a draggable selection box, right in your browser. No upload, no watermark, no sign-up — your image never leaves your device."
+	canonical="/crop-image"
+	heading="Crop Image"
+	subtitle="Drag the selection box to keep just the part you want, then download. Everything runs on your device."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="crop" actionLabel="Crop image" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Crop images in the browser</h2>
+				<p>
+					Move the highlighted box and drag its corners to frame exactly the area you want to keep. The pixel
+					size of your selection updates as you go. When you click crop, the image is cut locally on your device
+					— no upload required.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import PdfTool from '../components/PdfTool.astro';
+
+const related = [
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+	{ href: '/split-pdf', label: 'Split PDF' },
+	{ href: '/remove-pages-pdf', label: 'Remove PDF Pages' },
+	{ href: '/extract-pages-pdf', label: 'Extract PDF Pages' },
+	{ href: '/pdf-to-jpg', label: 'PDF to JPG' },
+];
+---
+
+<ToolLanding
+	title="Rotate PDF — Rotate PDF Pages Online Free | Free Format Convert"
+	description="Rotate a PDF's pages 90°, 180° or 270° in your browser. Rotate every page or just the ones you pick, then download — no upload, no watermark, no sign-up."
+	canonical="/rotate-pdf"
+	heading="Rotate PDF"
+	subtitle="Fix sideways or upside-down pages. Rotate the whole PDF or just selected pages, then download. Everything runs on your device."
+	relatedTitle="More PDF tools"
+	related={related}
+>
+	<PdfTool mode="rotate" actionLabel="Rotate PDF" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Rotate PDF pages</h2>
+				<p>
+					Choose a rotation of 90°, 180° or 270°, then click the pages you want to turn — the thumbnails preview
+					the rotation as you select them. Leave everything unselected to rotate the whole document. The change is
+					written locally in your browser with pdf-lib.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

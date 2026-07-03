@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import ImageTool from '../components/ImageTool.astro';
+
+const related = [
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/crop-image', label: 'Crop Image' },
+	{ href: '/rotate-image', label: 'Rotate Image' },
+	{ href: '/flip-image', label: 'Flip Image' },
+	{ href: '/color-picker', label: 'Color Picker' },
+];
+---
+
+<ToolLanding
+	title="Resize Image — Free Online Image Resizer | Free Format Convert"
+	description="Resize JPG, PNG, WebP, GIF and SVG images to exact pixel dimensions in your browser. Lock the aspect ratio, preview, and download — no upload, no watermark, no sign-up."
+	canonical="/resize-image"
+	heading="Resize Image"
+	subtitle="Set an exact width and height, with optional aspect-ratio lock. Runs entirely on your device — your image is never uploaded."
+	relatedTitle="Related image tools"
+	related={related}
+>
+	<ImageTool mode="resize" actionLabel="Resize image" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Resize images to any size</h2>
+				<p>
+					Enter the width and height you need in pixels. Keep "Lock aspect ratio" on to scale proportionally
+					without distortion, or turn it off to stretch to exact dimensions. The resize happens in your browser
+					using the Canvas API — nothing is sent to a server.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

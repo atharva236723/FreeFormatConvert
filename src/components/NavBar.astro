@@ -1,5 +1,6 @@
 ---
 import { getPopularPairs, type ConversionPair, type FileCategory } from '../lib/formats';
+import { TOOL_GROUPS } from '../lib/tools/registry';
 
 // Group the curated popular conversions by the category of the file you start with,
 // so the menu reads "Images → …", "Video → …" etc. Kept in sync with formats.ts.
@@ -75,6 +76,45 @@ const hubLinks = [
 					</div>
 					<a class="dropdown-all" href="/conversions">
 						View all conversions
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+					</a>
+				</div>
+			</div>
+			<div class="nav-dropdown" data-dropdown>
+				<button
+					type="button"
+					class="nav-dropdown-trigger"
+					data-dropdown-trigger
+					aria-haspopup="true"
+					aria-expanded="false"
+					aria-controls="tools-menu"
+				>
+					Tools
+					<svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+					</svg>
+				</button>
+				<div class="nav-dropdown-panel" id="tools-menu" data-dropdown-panel hidden>
+					<div class="dropdown-grid">
+						{
+							TOOL_GROUPS.map((group) => (
+								<div class="dropdown-col">
+									<p class="dropdown-col-title">{group.title}</p>
+									<ul>
+										{group.tools.map((t) => (
+											<li>
+												<a href={t.href}>{t.label}</a>
+											</li>
+										))}
+									</ul>
+								</div>
+							))
+						}
+					</div>
+					<a class="dropdown-all" href="/tools">
+						View all tools
 						<svg viewBox="0 0 24 24" aria-hidden="true">
 							<path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
 						</svg>
@@ -178,9 +218,11 @@ const hubLinks = [
 		color: var(--color-chrome-fg);
 	}
 
-	/* Conversions dropdown */
+	/* Conversions dropdown. Deliberately NOT position:relative — the panel is anchored to the
+	   `.nav-inner` container's right edge (below) instead of to the trigger, so a wide mega-menu
+	   opened from a right-of-center trigger (e.g. "Tools") can't run off the viewport edge. */
 	.nav-dropdown {
-		position: relative;
+		position: static;
 	}
 
 	.nav-dropdown-trigger {
@@ -217,7 +259,8 @@ const hubLinks = [
 	.nav-dropdown-panel {
 		position: absolute;
 		top: calc(100% + var(--space-xs));
-		left: 0;
+		right: 0;
+		left: auto;
 		z-index: 50;
 		width: min(600px, calc(100vw - 2 * var(--space-md)));
 		background: var(--color-canvas);
@@ -336,13 +379,10 @@ const hubLinks = [
 			border-top: 1px solid var(--color-chrome-border);
 		}
 
-		/* Center the panel under the wrapped link row instead of anchoring it to
-		   the (now centered) trigger, so it can't overflow the viewport edge. */
-		.nav-dropdown {
-			position: static;
-		}
-
+		/* Center the panel under the wrapped link row instead of right-anchoring it,
+		   so it can't overflow the viewport edge. */
 		.nav-dropdown-panel {
+			right: auto;
 			left: 50%;
 			transform: translateX(-50%);
 			padding: var(--space-md);

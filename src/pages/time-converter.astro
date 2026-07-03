@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import UnitConverter from '../components/UnitConverter.astro';
+
+const related = [
+	{ href: '/unit-converter', label: 'Unit Converter' },
+	{ href: '/compress-video', label: 'Compress Video' },
+	{ href: '/trim-video', label: 'Trim Video' },
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+];
+---
+
+<ToolLanding
+	title="Time Converter — Seconds, Minutes, Hours, Days & More | Free Format Convert"
+	description="Free online time unit converter — convert between nanoseconds, milliseconds, seconds, minutes, hours, days, weeks, months and years instantly, right in your browser."
+	canonical="/time-converter"
+	heading="Time Converter"
+	subtitle="Convert between nanoseconds, seconds, minutes, hours, days, weeks, months and years. Instant and entirely in your browser."
+	relatedTitle="More tools"
+	related={related}
+>
+	<UnitConverter preset="time" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Convert time units</h2>
+				<p>
+					Enter a duration in any time unit and read it in another instantly. Handy for turning seconds into
+					hours, days into weeks, or milliseconds into minutes. Month and year use 30- and 365-day
+					approximations. Everything is computed locally in your browser.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

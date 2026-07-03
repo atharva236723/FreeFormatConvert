@@ -1,0 +1,35 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import UnitConverter from '../components/UnitConverter.astro';
+
+const related = [
+	{ href: '/time-converter', label: 'Time Converter' },
+	{ href: '/compress-image', label: 'Compress Image' },
+	{ href: '/resize-image', label: 'Resize Image' },
+	{ href: '/merge-pdf', label: 'Merge PDF' },
+];
+---
+
+<ToolLanding
+	title="Unit Converter — Length, Weight, Temperature & More | Free Format Convert"
+	description="Free online unit converter for length, weight, temperature, area, volume, speed, digital storage and time. Instant, accurate, and runs entirely in your browser."
+	canonical="/unit-converter"
+	heading="Unit Converter"
+	subtitle="Convert between length, weight, temperature, area, volume, speed, data and time units instantly. No sign-up, no server."
+	relatedTitle="More tools"
+	related={related}
+>
+	<UnitConverter />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Convert any unit instantly</h2>
+				<p>
+					Pick a category, enter a value, and the result updates as you type. The converter covers everyday
+					measurements — meters and feet, kilograms and pounds, Celsius and Fahrenheit — as well as area, volume,
+					speed, digital storage (both decimal and binary) and time. All the math runs in your browser.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

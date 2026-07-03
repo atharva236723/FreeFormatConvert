@@ -1,10 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getAllConversionPairs } from '../lib/formats';
+import { TOOL_PATHS } from '../lib/tools/registry';
 
 /** Static routes that aren't generated from the conversion matrix. */
 const STATIC_PATHS = [
 	'/',
 	'/conversions',
+	'/tools',
 	'/about',
 	'/contact',
 	'/terms',
@@ -14,6 +16,7 @@ const STATIC_PATHS = [
 	'/pdf-converter',
 	'/document-converter',
 	'/ebook-converter',
+	...TOOL_PATHS,
 ];
 
 export const GET: APIRoute = ({ site }) => {

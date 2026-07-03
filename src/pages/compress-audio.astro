@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import MediaTool from '../components/MediaTool.astro';
+
+const related = [
+	{ href: '/compress-video', label: 'Compress Video' },
+	{ href: '/compress-gif', label: 'Compress GIF' },
+	{ href: '/wav-to-mp3', label: 'WAV to MP3' },
+	{ href: '/flac-to-mp3', label: 'FLAC to MP3' },
+	{ href: '/m4a-to-mp3', label: 'M4A to MP3' },
+];
+---
+
+<ToolLanding
+	title="Compress Audio — Free Online Audio & MP3 Compressor | Free Format Convert"
+	description="Reduce MP3, WAV, M4A, AAC and OGG audio file size in your browser by lowering the bitrate. No upload, no watermark, no sign-up — audio never leaves your device."
+	canonical="/compress-audio"
+	heading="Compress Audio"
+	subtitle="Lower the bitrate to shrink your audio file. Everything runs on your device — nothing is uploaded."
+	relatedTitle="Related media tools"
+	related={related}
+>
+	<MediaTool mode="compress-audio" actionLabel="Compress audio" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Make audio files smaller</h2>
+				<p>
+					Choose a target bitrate — lower bitrates produce smaller files at some cost to fidelity. The tool
+					re-encodes your track in your browser with ffmpeg, keeping the M4A, AAC or OGG container where it can
+					and falling back to MP3 otherwise. Your audio never leaves your device.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>

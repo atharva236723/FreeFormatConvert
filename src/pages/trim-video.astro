@@ -1,0 +1,36 @@
+---
+import ToolLanding from '../components/ToolLanding.astro';
+import MediaTool from '../components/MediaTool.astro';
+
+const related = [
+	{ href: '/compress-video', label: 'Compress Video' },
+	{ href: '/compress-gif', label: 'Compress GIF' },
+	{ href: '/mp4-to-gif', label: 'MP4 to GIF' },
+	{ href: '/video-to-gif', label: 'Video to GIF' },
+	{ href: '/mkv-to-mp4', label: 'MKV to MP4' },
+];
+---
+
+<ToolLanding
+	title="Trim Video — Free Online Video Trimmer & Cutter | Free Format Convert"
+	description="Cut MP4, MOV, MKV, WebM and AVI videos to just the part you want, in your browser. Set start and end points and download an MP4 — no upload, no watermark, no sign-up."
+	canonical="/trim-video"
+	heading="Trim Video"
+	subtitle="Set a start and end point to keep just the clip you need. Everything runs on your device — your video is never uploaded."
+	relatedTitle="Related media tools"
+	related={related}
+>
+	<MediaTool mode="trim" actionLabel="Trim video" />
+	<Fragment slot="seo">
+		<section class="seo">
+			<div class="container prose">
+				<h2>Cut a clip out of a video</h2>
+				<p>
+					Drag the start and end sliders to select the section you want to keep — the preview jumps to each point
+					as you move it. The tool then re-encodes just that range to an MP4 in your browser, so your video stays
+					on your device.
+				</p>
+			</div>
+		</section>
+	</Fragment>
+</ToolLanding>
