@@ -5,15 +5,10 @@
  * like ffmpeg's core and the document engine. All page numbers in this API are 1-based.
  */
 
+import { loadPdfjs } from '../converter/pdfjsLoader';
+
 async function loadPdfLib() {
 	return import('pdf-lib');
-}
-
-async function loadPdfjs() {
-	const pdfjs = await import('pdfjs-dist');
-	const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
-	pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-	return pdfjs;
 }
 
 export async function getPageCount(file: File): Promise<number> {

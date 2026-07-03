@@ -163,6 +163,14 @@ const ANIMATED_IMAGE_EXTS = new Set(['gif', 'apng']);
  */
 const IMAGE_TO_PDF_SOURCES = new Set([...CANVAS_DECODABLE_EXTS, 'heic']);
 
+/**
+ * HEIC/HEIF sources. Neither `createImageBitmap` nor the ffmpeg wasm core can decode them, so
+ * they're transcoded to JPEG with heic2any first and then handled entirely on the Canvas /
+ * documentEngine paths. That means their only reachable targets are the Canvas-encodable raster
+ * formats, ICO, and PDF — ffmpeg-only targets (GIF/BMP/TIFF) can't be produced from a HEIC source.
+ */
+const HEIC_EXTS = new Set(['heic', 'heif']);
+
 export function getExtension(filename: string): string {
 	const dot = filename.lastIndexOf('.');
 	if (dot === -1) return '';
@@ -238,6 +246,15 @@ export function getAvailableTargets(sourceCategory: FileCategory, sourceExt: str
 		sameCategory.push({ ...pdf, group: 'convert' });
 	}
 
+	// HEIC/HEIF can't be decoded by ffmpeg, so drop targets that would need it (GIF/BMP/TIFF).
+	// What's left — Canvas-encodable rasters, ICO and PDF — is exactly what the Canvas and
+	// documentEngine paths can produce from a heic2any-decoded source.
+	if (sourceCategory === 'image' && HEIC_EXTS.has(ext)) {
+		return sameCategory.filter(
+			(t) => CANVAS_ENCODABLE_EXTS.has(t.ext) || t.ext === 'ico' || t.ext === 'pdf',
+		);
+	}
+
 	// Animated images (GIF, APNG) can be turned into real video. ffmpeg preserves every
 	// frame, so offer the video containers as extra convert targets (e.g. GIF→MP4).
 	if (sourceCategory === 'image' && ANIMATED_IMAGE_EXTS.has(ext)) {
@@ -266,7 +283,17 @@ function getDocumentTargets(sourceExt: string): TargetOption[] {
 		const docTargets = (['docx', 'epub'] as const).map((e) => DOCUMENT_FORMATS.find((f) => f.ext === e)!);
 		return [...imageTargets, ...docTargets].map((f) => ({ ...f, popular: true, group: 'convert' as const }));
 	}
-	if (sourceExt === 'docx' || sourceExt === 'epub') {
+	if (sourceExt === 'docx') {
+		// Word docs convert to PDF, and — via an internal DOCX→PDF→raster pass (documentEngine) —
+		// to JPG/PNG images (a multi-page doc yields one image per page, bundled into a ZIP).
+		const pdf = DOCUMENT_FORMATS.find((f) => f.ext === 'pdf')!;
+		const imageTargets = (['jpg', 'png'] as const).map((e) => IMAGE_FORMATS.find((f) => f.ext === e)!);
+		return [
+			{ ...pdf, group: 'convert' as const },
+			...imageTargets.map((f) => ({ ...f, popular: true, group: 'convert' as const })),
+		];
+	}
+	if (sourceExt === 'epub') {
 		const pdf = DOCUMENT_FORMATS.find((f) => f.ext === 'pdf')!;
 		return [{ ...pdf, group: 'convert' }];
 	}
@@ -279,12 +306,20 @@ function getDocumentTargets(sourceExt: string): TargetOption[] {
  * text and reflow it, losing the source's exact visual layout); PPTX→anything stays excluded
  * (no reliable fully-client-side renderer).
  */
-export type DocumentOp = 'docx-to-pdf' | 'pdf-to-image' | 'image-to-pdf' | 'pdf-to-docx' | 'pdf-to-epub' | 'epub-to-pdf';
+export type DocumentOp =
+	| 'docx-to-pdf'
+	| 'docx-to-image'
+	| 'pdf-to-image'
+	| 'image-to-pdf'
+	| 'pdf-to-docx'
+	| 'pdf-to-epub'
+	| 'epub-to-pdf';
 
 export function getDocumentOp(sourceExt: string, targetExt: string): DocumentOp | null {
 	const s = sourceExt.toLowerCase();
 	const t = targetExt.toLowerCase();
 	if (s === 'docx' && t === 'pdf') return 'docx-to-pdf';
+	if (s === 'docx' && (t === 'jpg' || t === 'jpeg' || t === 'png')) return 'docx-to-image';
 	if (s === 'epub' && t === 'pdf') return 'epub-to-pdf';
 	if (s === 'pdf' && (t === 'jpg' || t === 'jpeg' || t === 'png')) return 'pdf-to-image';
 	if (s === 'pdf' && t === 'docx') return 'pdf-to-docx';
@@ -294,7 +329,12 @@ export function getDocumentOp(sourceExt: string, targetExt: string): DocumentOp 
 }
 
 export function isFastPathPair(sourceExt: string, targetExt: string): boolean {
-	return CANVAS_DECODABLE_EXTS.has(sourceExt.toLowerCase()) && CANVAS_ENCODABLE_EXTS.has(targetExt.toLowerCase());
+	const s = sourceExt.toLowerCase();
+	// HEIC/HEIF aren't natively Canvas-decodable, but imageEngine transcodes them to JPEG with
+	// heic2any before drawing, so a HEIC→JPG/PNG/WebP conversion still runs on the Canvas path
+	// (the ffmpeg core can't decode HEIC at all, so this is the only route that works).
+	const decodable = CANVAS_DECODABLE_EXTS.has(s) || HEIC_EXTS.has(s);
+	return decodable && CANVAS_ENCODABLE_EXTS.has(targetExt.toLowerCase());
 }
 
 export function formatBytes(bytes: number): string {

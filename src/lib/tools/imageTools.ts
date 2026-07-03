@@ -49,7 +49,20 @@ export async function decodeImage(file: File | Blob): Promise<DecodedImage> {
 function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
-			(blob) => (blob ? resolve(blob) : reject(new Error('Image encoding failed'))),
+			(blob) => {
+				if (!blob) {
+					reject(new Error('Image encoding failed'));
+					return;
+				}
+				// A browser that can't encode the requested type silently returns image/png (with the
+				// real type on the blob). Detect that mismatch so we never hand back a PNG under a .webp
+				// name — the WebP-on-Safari-<14 case — and fail with a clear message instead.
+				if (blob.type && blob.type !== mime) {
+					reject(new Error(`This browser can't encode ${mime.replace('image/', '').toUpperCase()} — try PNG or JPG instead.`));
+					return;
+				}
+				resolve(blob);
+			},
 			mime,
 			quality,
 		);

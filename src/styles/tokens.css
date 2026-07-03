@@ -142,6 +142,18 @@
 	/* Layout */
 	--content-max-width: 1400px;
 
+	/* Motion — shared easing curves + durations so every transition on the site
+	   feels like it came from the same hand. Consume these instead of hand-writing
+	   `0.15s ease` per component. `--ease-out-soft` is the "butter" curve (a long,
+	   decelerating tail); `--ease-spring` overshoots slightly for pops/selections. */
+	--ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+	--ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--dur-fast: 0.15s;
+	--dur-base: 0.25s;
+	--dur-slow: 0.4s;
+	--dur-reveal: 0.7s;
+
 	color-scheme: light;
 }
 

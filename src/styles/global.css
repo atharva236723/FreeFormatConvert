@@ -66,6 +66,73 @@ svg {
 	}
 }
 
+/* ---------------------------------------------------------------------------
+   Global motion layer
+   Butter-smooth defaults that ride on top of every component's own transitions.
+   Everything here is opt-in via the `js-motion` class the motion script adds to
+   <html> at first paint, so with JS disabled nothing is hidden or animated, and
+   the reduced-motion block below neutralises all of it.
+--------------------------------------------------------------------------- */
+
+/* Smooth, consistent feedback on the interactive primitives that don't already
+   declare their own transition. Component-level rules (buttons/chips/cards) win
+   on specificity, so this only fills the gaps. */
+a,
+summary,
+input,
+select,
+textarea {
+	transition: color var(--dur-fast) var(--ease-smooth),
+		background-color var(--dur-fast) var(--ease-smooth),
+		border-color var(--dur-fast) var(--ease-smooth),
+		box-shadow var(--dur-fast) var(--ease-smooth);
+}
+
+/* Tactile press: interactive controls dip a hair on click. */
+.js-motion button:active,
+.js-motion a[href]:active,
+.js-motion summary:active {
+	transform: translateY(0.5px) scale(0.985);
+}
+
+/* Gentle whole-page fade-in on arrival so navigations don't snap. */
+.js-motion.page-enter body {
+	animation: ffc-page-enter 0.45s var(--ease-out-soft) both;
+}
+
+@keyframes ffc-page-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Scroll-reveal: content sections (and anything explicitly tagged [data-reveal])
+   start slightly lowered + transparent, then settle as they enter the viewport.
+   The `.hero` block is excluded — it has its own entrance animation and must paint
+   instantly. The `js-motion` class is added by an inline <head> script before first
+   paint, so this is flash-free; --reveal-i staggers neighbours that reveal together.
+   `motion-failsafe` (set on a timer / on error) forces everything visible so content
+   can never get stuck hidden if the reveal script fails to run. */
+.js-motion:not(.motion-failsafe) main > section:not(.hero):not([data-reveal-container]),
+.js-motion:not(.motion-failsafe) [data-reveal] {
+	opacity: 0;
+	transform: translateY(22px);
+	transition: opacity var(--dur-reveal) var(--ease-out-soft),
+		transform var(--dur-reveal) var(--ease-out-soft);
+	transition-delay: calc(var(--reveal-i, 0) * 70ms);
+	will-change: opacity, transform;
+}
+
+.js-motion main > section:not(.hero).is-revealed,
+.js-motion [data-reveal].is-revealed {
+	opacity: 1;
+	transform: none;
+	will-change: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
@@ -73,6 +140,13 @@ svg {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
+	}
+
+	/* Never leave reveal targets stuck hidden when motion is off. */
+	.js-motion main > section:not(.hero),
+	.js-motion [data-reveal] {
+		opacity: 1 !important;
+		transform: none !important;
 	}
 }
 

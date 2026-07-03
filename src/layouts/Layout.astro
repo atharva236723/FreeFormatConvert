@@ -42,6 +42,19 @@ const ogImageURL = new URL(ogImage, Astro.site);
 				if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 			})();
 		</script>
+		<script is:inline>
+			// Enable the global motion layer before first paint so scroll-reveal is
+			// flash-free (see motion.ts + global.css). `page-enter` fades the document
+			// in on arrival. A failsafe force-reveals everything if the reveal script
+			// never boots, so content can't get stuck hidden.
+			(function () {
+				var root = document.documentElement;
+				root.classList.add('js-motion', 'page-enter');
+				setTimeout(function () {
+					if (!window.__ffcMotionReady) root.classList.add('motion-failsafe');
+				}, 2500);
+			})();
+		</script>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!-- Google tag (gtag.js) -->
@@ -94,5 +107,6 @@ const ogImageURL = new URL(ogImage, Astro.site);
 	<body>
 		<PageLoader />
 		<slot />
+		<script src="../scripts/motion.ts"></script>
 	</body>
 </html>

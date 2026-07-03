@@ -12,19 +12,41 @@ interface DecodedImage {
 	cleanup: () => void;
 }
 
+function isHeic(file: File): boolean {
+	const type = file.type.toLowerCase();
+	if (type === 'image/heic' || type === 'image/heif') return true;
+	const name = file.name.toLowerCase();
+	return name.endsWith('.heic') || name.endsWith('.heif');
+}
+
+/**
+ * HEIC/HEIF can't be decoded by any mainstream browser via `createImageBitmap` (and the ffmpeg
+ * wasm core can't decode them either), so they're first transcoded to JPEG with heic2any (a WASM
+ * libheif wrapper). Dynamically imported so the library stays out of the eager bundle, mirroring
+ * documentEngine.ts. Returns the original file untouched for every non-HEIC source.
+ */
+async function normalizeForDecode(file: File): Promise<Blob> {
+	if (!isHeic(file)) return file;
+	const heic2any = (await import('heic2any')).default;
+	const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+	return Array.isArray(out) ? out[0] : out;
+}
+
 /**
  * Decode a source image to something drawable on a canvas. `createImageBitmap` is the fast
  * path and handles JPEG/PNG/WebP/GIF/BMP/AVIF, but it throws on SVG ("source image could not
  * be decoded"). So on failure we fall back to an <img> element, which the browser rasterizes
  * (including SVG) before we draw it. SVGs without an intrinsic size report 0×0, so default to
- * 512² in that case rather than producing an empty canvas.
+ * 512² in that case rather than producing an empty canvas. HEIC/HEIF are transcoded to JPEG
+ * up front (see normalizeForDecode) since neither path can read them directly.
  */
 async function decodeImage(file: File): Promise<DecodedImage> {
+	const input = await normalizeForDecode(file);
 	try {
-		const bitmap = await createImageBitmap(file);
+		const bitmap = await createImageBitmap(input);
 		return { width: bitmap.width, height: bitmap.height, source: bitmap, cleanup: () => bitmap.close() };
 	} catch {
-		const url = URL.createObjectURL(file);
+		const url = URL.createObjectURL(input);
 		try {
 			const img = new Image();
 			img.decoding = 'async';
@@ -47,8 +69,19 @@ function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality: number):
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
 			(blob) => {
-				if (blob) resolve(blob);
-				else reject(new Error('Image encoding failed'));
+				if (!blob) {
+					reject(new Error('Image encoding failed'));
+					return;
+				}
+				// Per spec, when a browser can't encode the requested type it silently falls back to
+				// image/png and reports the real type on the blob. Without this check that PNG would be
+				// saved under a .webp name (a corrupt, mislabeled file). This is the WebP-on-Safari-<14
+				// case: surface an honest error instead of a broken download.
+				if (blob.type && blob.type !== mime) {
+					reject(new Error(`This browser can't encode ${mime.replace('image/', '').toUpperCase()} — try converting to PNG or JPG instead.`));
+					return;
+				}
+				resolve(blob);
 			},
 			mime,
 			quality,

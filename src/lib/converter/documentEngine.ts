@@ -1,6 +1,7 @@
 import type { jsPDF as JsPdfType } from 'jspdf';
 import type JSZipInstance from 'jszip';
 import { ConversionError } from './errors';
+import { loadPdfjs } from './pdfjsLoader';
 import type { DocumentOp } from '../formats';
 
 export interface ConvertDocumentResult {
@@ -32,6 +33,8 @@ export async function convertDocument(
 			return pdfToImage(file, targetExt, baseName, opts.onProgress);
 		case 'docx-to-pdf':
 			return docxToPdf(file, baseName, opts.onProgress);
+		case 'docx-to-image':
+			return docxToImage(file, targetExt, baseName, opts.onProgress);
 		case 'pdf-to-docx':
 			return pdfToDocx(file, baseName, opts.onProgress);
 		case 'pdf-to-epub':
@@ -126,28 +129,35 @@ const PDF_TO_IMAGE_MAX_PAGES = 100;
 const PDF_RENDER_MAX_EDGE = 2400;
 const PDF_RENDER_TARGET_SCALE = 2;
 
-async function loadPdfjs() {
-	const pdfjs = await import('pdfjs-dist');
-	// Vite resolves the ?url suffix to the emitted worker asset URL.
-	const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
-	pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-	return pdfjs;
-}
-
 async function pdfToImage(
 	file: File,
 	targetExt: string,
 	baseName: string,
 	onProgress?: (r: number) => void,
 ): Promise<ConvertDocumentResult> {
+	onProgress?.(0.05);
+	const data = new Uint8Array(await file.arrayBuffer());
+	return pdfDataToImages(data, targetExt, baseName, onProgress);
+}
+
+/**
+ * Rasterizes every page of an in-memory PDF (a raw byte buffer, so it works both for an uploaded
+ * PDF and for one we generate on the fly from a DOCX) to JPG/PNG. A single page returns one image;
+ * multiple pages are bundled into a ZIP. `startRatio` lets a caller reserve the leading part of the
+ * progress bar for an earlier step (e.g. the DOCX→PDF pass that precedes DOCX→image).
+ */
+async function pdfDataToImages(
+	data: Uint8Array,
+	targetExt: string,
+	baseName: string,
+	onProgress?: (r: number) => void,
+	startRatio = 0.05,
+): Promise<ConvertDocumentResult> {
 	const isPng = targetExt.toLowerCase() === 'png';
 	const mime = isPng ? 'image/png' : 'image/jpeg';
 	const outExt = isPng ? 'png' : 'jpg';
 
-	onProgress?.(0.05);
 	const pdfjs = await loadPdfjs();
-	const data = new Uint8Array(await file.arrayBuffer());
-
 	const loadingTask = pdfjs.getDocument({ data });
 	let doc;
 	try {
@@ -161,34 +171,19 @@ async function pdfToImage(
 		await loadingTask.destroy();
 		throw new ConversionError(
 			'file-too-large',
-			`This PDF has ${total} pages. Converting to images is limited to ${PDF_TO_IMAGE_MAX_PAGES} pages to keep it fast in the browser.`,
+			`This document has ${total} pages. Converting to images is limited to ${PDF_TO_IMAGE_MAX_PAGES} pages to keep it fast in the browser.`,
 		);
 	}
 
+	const span = 0.95 - startRatio;
 	const pageBlobs: Blob[] = [];
 	try {
 		for (let n = 1; n <= total; n++) {
 			const page = await doc.getPage(n);
-
-			const base = page.getViewport({ scale: 1 });
-			const longest = Math.max(base.width, base.height);
-			const scale = Math.min(PDF_RENDER_TARGET_SCALE, PDF_RENDER_MAX_EDGE / longest);
-			const viewport = page.getViewport({ scale });
-
-			const canvas = document.createElement('canvas');
-			canvas.width = Math.max(1, Math.ceil(viewport.width));
-			canvas.height = Math.max(1, Math.ceil(viewport.height));
-			const ctx = canvas.getContext('2d');
-			if (!ctx) throw new ConversionError('unknown', 'Canvas 2D context unavailable.');
-			// White backdrop so JPEG (which has no alpha) doesn't render transparent areas black.
-			ctx.fillStyle = '#ffffff';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-			await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-			pageBlobs.push(await canvasToBlob(canvas, mime));
+			const { blob } = await renderPdfPage(page, mime, PDF_RENDER_MAX_EDGE);
+			pageBlobs.push(blob);
 			page.cleanup();
-
-			onProgress?.(0.05 + (n / total) * 0.9);
+			onProgress?.(startRatio + (n / total) * span);
 		}
 	} finally {
 		await loadingTask.destroy();
@@ -210,6 +205,29 @@ async function pdfToImage(
 	onProgress?.(1);
 
 	return { blob: zipBlob, filename: `${baseName}.zip` };
+}
+
+/** Renders a single pdfjs page to a raster blob, white-flattened so JPEG transparency isn't black. */
+async function renderPdfPage(
+	page: { getViewport: (o: { scale: number }) => { width: number; height: number }; render: (o: any) => { promise: Promise<void> } },
+	mime: string,
+	maxEdge: number,
+): Promise<{ blob: Blob; width: number; height: number }> {
+	const base = page.getViewport({ scale: 1 });
+	const longest = Math.max(base.width, base.height);
+	const scale = Math.min(PDF_RENDER_TARGET_SCALE, maxEdge / longest);
+	const viewport = page.getViewport({ scale });
+
+	const canvas = document.createElement('canvas');
+	canvas.width = Math.max(1, Math.ceil(viewport.width));
+	canvas.height = Math.max(1, Math.ceil(viewport.height));
+	const ctx = canvas.getContext('2d');
+	if (!ctx) throw new ConversionError('unknown', 'Canvas 2D context unavailable.');
+	ctx.fillStyle = '#ffffff';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+	return { blob: await canvasToBlob(canvas, mime), width: canvas.width, height: canvas.height };
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, mime: string): Promise<Blob> {
@@ -253,20 +271,7 @@ async function extractPdfPages(file: File, onProgress?: (r: number) => void): Pr
 		for (let n = 1; n <= total; n++) {
 			const page = await doc.getPage(n);
 			const content = await page.getTextContent();
-
-			const lines: string[] = [];
-			let line = '';
-			for (const item of content.items) {
-				if (!('str' in item)) continue;
-				line += item.str;
-				if (item.hasEOL) {
-					lines.push(line);
-					line = '';
-				}
-			}
-			if (line.trim()) lines.push(line);
-
-			pages.push(linesToParagraphs(lines));
+			pages.push(itemsToParagraphs(content.items));
 			page.cleanup();
 			onProgress?.(0.1 + (n / total) * 0.6);
 		}
@@ -275,6 +280,23 @@ async function extractPdfPages(file: File, onProgress?: (r: number) => void): Pr
 	}
 
 	return pages;
+}
+
+/** Rebuilds paragraphs from pdfjs' positioned text runs (using each run's `hasEOL` line break). */
+function itemsToParagraphs(items: ReadonlyArray<unknown>): string[] {
+	const lines: string[] = [];
+	let line = '';
+	for (const item of items) {
+		if (!item || typeof item !== 'object' || !('str' in item)) continue;
+		const run = item as { str: string; hasEOL?: boolean };
+		line += run.str;
+		if (run.hasEOL) {
+			lines.push(line);
+			line = '';
+		}
+	}
+	if (line.trim()) lines.push(line);
+	return linesToParagraphs(lines);
 }
 
 /** Merges wrapped lines into paragraphs; a blank line marks a paragraph boundary. */
@@ -299,10 +321,19 @@ function linesToParagraphs(lines: string[]): string[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Extracts the PDF's text and writes a real, editable .docx (via the `docx` library). This is a
- * text-only conversion: paragraphs are preserved and each PDF page starts on a new Word page, but
- * the source's exact layout, columns, fonts, and image positions are not reproduced — there's no
- * reliable fully-client-side way to do that.
+ * Longest-edge budget for a page rendered as an image and embedded in the Word doc (the scanned-PDF
+ * fallback below). Smaller than the PDF→image budget so the .docx doesn't balloon.
+ */
+const DOCX_EMBED_MAX_EDGE = 1600;
+/** Approximate content box (px @ 96 DPI) of a default A4 Word page with 1" margins — embed fit target. */
+const DOCX_PAGE_BOX = { width: 600, height: 900 };
+
+/**
+ * Extracts the PDF's text and writes a real, editable .docx (via the `docx` library). Paragraphs
+ * are preserved and each PDF page starts on a new Word page. For a page with *no extractable text*
+ * (e.g. a scanned/image-only PDF), the page is rendered to an image and embedded instead — so a
+ * scanned document still converts to a usable Word file rather than coming out blank. Trade-off: it
+ * reflows text and does not reproduce the source's exact layout, columns, fonts, or image positions.
  */
 async function pdfToDocx(
 	file: File,
@@ -310,38 +341,78 @@ async function pdfToDocx(
 	onProgress?: (r: number) => void,
 ): Promise<ConvertDocumentResult> {
 	onProgress?.(0.05);
-	const pages = await extractPdfPages(file, onProgress);
+	const pdfjs = await loadPdfjs();
+	const data = new Uint8Array(await file.arrayBuffer());
+	const loadingTask = pdfjs.getDocument({ data });
 
-	const { Document, Packer, Paragraph, TextRun } = await import('docx');
+	let doc;
+	try {
+		doc = await loadingTask.promise;
+	} catch {
+		throw new ConversionError('unsupported-pair', 'This file could not be read as a PDF.');
+	}
 
+	const { Document, Packer, Paragraph, TextRun, ImageRun } = await import('docx');
 	const children: InstanceType<typeof Paragraph>[] = [];
-	pages.forEach((paragraphs, pageIndex) => {
-		const startsNewPage = pageIndex > 0;
-		if (paragraphs.length === 0) {
-			// Preserve an intentional page break even for a page with no extractable text.
-			if (startsNewPage) children.push(new Paragraph({ pageBreakBefore: true }));
-			return;
+
+	const total = Math.min(doc.numPages, PDF_TEXT_MAX_PAGES);
+	try {
+		for (let n = 1; n <= total; n++) {
+			const page = await doc.getPage(n);
+			const content = await page.getTextContent();
+			const paragraphs = itemsToParagraphs(content.items);
+			const startsNewPage = n > 1;
+
+			if (paragraphs.length === 0) {
+				// No text layer (scanned page): embed the rendered page image so the content survives.
+				const { blob, width, height } = await renderPdfPage(page, 'image/png', DOCX_EMBED_MAX_EDGE);
+				const bytes = new Uint8Array(await blob.arrayBuffer());
+				children.push(
+					new Paragraph({
+						pageBreakBefore: startsNewPage,
+						children: [
+							new ImageRun({
+								type: 'png',
+								data: bytes,
+								transformation: fitToBox(width, height, DOCX_PAGE_BOX),
+							}),
+						],
+					}),
+				);
+			} else {
+				paragraphs.forEach((text, i) => {
+					children.push(
+						new Paragraph({
+							children: [new TextRun(text)],
+							pageBreakBefore: startsNewPage && i === 0,
+							spacing: { after: 160 },
+						}),
+					);
+				});
+			}
+
+			page.cleanup();
+			onProgress?.(0.1 + (n / total) * 0.8);
 		}
-		paragraphs.forEach((text, i) => {
-			children.push(
-				new Paragraph({
-					children: [new TextRun(text)],
-					pageBreakBefore: startsNewPage && i === 0,
-					spacing: { after: 160 },
-				}),
-			);
-		});
-	});
+	} finally {
+		await loadingTask.destroy();
+	}
 
 	if (children.length === 0) {
 		children.push(new Paragraph({ children: [new TextRun('')] }));
 	}
 
-	const doc = new Document({ sections: [{ children }] });
-	const blob = await Packer.toBlob(doc);
+	const outDoc = new Document({ sections: [{ children }] });
+	const blob = await Packer.toBlob(outDoc);
 	onProgress?.(1);
 
 	return { blob, filename: `${baseName}.docx` };
+}
+
+/** Scales (w×h) down to fit within `box`, preserving aspect ratio. Never scales up. */
+function fitToBox(w: number, h: number, box: { width: number; height: number }): { width: number; height: number } {
+	const ratio = Math.min(box.width / w, box.height / h, 1);
+	return { width: Math.round(w * ratio), height: Math.round(h * ratio) };
 }
 
 // ---------------------------------------------------------------------------
@@ -586,6 +657,17 @@ async function docxToPdf(
 	baseName: string,
 	onProgress?: (r: number) => void,
 ): Promise<ConvertDocumentResult> {
+	const pdf = await docxToPdfDoc(file, onProgress);
+	onProgress?.(1);
+	return { blob: pdf.output('blob'), filename: `${baseName}.pdf` };
+}
+
+/**
+ * Shared DOCX→PDF core: mammoth extracts the document as HTML, then `renderHtmlToPdf` lays it out
+ * into a text-selectable PDF. Returns the jsPDF instance so callers can either serialize it (DOCX→PDF)
+ * or hand its bytes to the rasterizer (DOCX→image). Emits progress up to ~0.5.
+ */
+async function docxToPdfDoc(file: File, onProgress?: (r: number) => void): Promise<JsPdfType> {
 	onProgress?.(0.1);
 
 	// The prebuilt browser bundle avoids pulling mammoth's Node-only dependencies.
@@ -603,10 +685,25 @@ async function docxToPdf(
 	onProgress?.(0.5);
 
 	const { jsPDF } = await import('jspdf');
-	const pdf = renderHtmlToPdf(new jsPDF({ unit: 'pt', format: 'a4', compress: true }), html);
-	onProgress?.(1);
+	return renderHtmlToPdf(new jsPDF({ unit: 'pt', format: 'a4', compress: true }), html);
+}
 
-	return { blob: pdf.output('blob'), filename: `${baseName}.pdf` };
+/**
+ * DOCX → JPG/PNG. There's no direct client-side Word renderer, so we route through the same
+ * DOCX→PDF layout pass and then rasterize each resulting PDF page. A single-page doc yields one
+ * image; a multi-page doc yields one image per page, bundled into a ZIP (handled by pdfDataToImages).
+ */
+async function docxToImage(
+	file: File,
+	targetExt: string,
+	baseName: string,
+	onProgress?: (r: number) => void,
+): Promise<ConvertDocumentResult> {
+	// docxToPdfDoc emits up to 0.5; scale it into the first ~40% of the bar, then rasterize.
+	const pdf = await docxToPdfDoc(file, (r) => onProgress?.(r * 0.8));
+	onProgress?.(0.45);
+	const data = new Uint8Array(pdf.output('arraybuffer'));
+	return pdfDataToImages(data, targetExt, baseName, onProgress, 0.45);
 }
 
 /**

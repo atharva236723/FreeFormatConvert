@@ -253,6 +253,26 @@ const dropSub = presetTargetLabel
 		display: block;
 	}
 
+	/* Ease each stage in when it becomes the active one, so moving through
+	   pick → converting → done feels like one smooth flow instead of hard cuts. */
+	file-converter[data-state='file-selected'] .stage-pick,
+	file-converter[data-state='converting'] .stage-converting,
+	file-converter[data-state='done'] .stage-done,
+	file-converter[data-state='error'] .stage-error {
+		animation: ffc-stage-in var(--dur-base) var(--ease-out-soft);
+	}
+
+	@keyframes ffc-stage-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
 	.stage-label {
 		font-size: var(--text-body-sm-strong-size);
 		font-weight: var(--text-body-sm-strong-weight);

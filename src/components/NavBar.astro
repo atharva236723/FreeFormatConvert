@@ -274,6 +274,25 @@ const hubLinks = [
 		display: none;
 	}
 
+	/* Butter-smooth open: the controller just flips the [hidden] attribute, so the
+	   panel animates in each time it becomes visible. transform-origin at the top-right
+	   makes it unfold from under its trigger. */
+	.nav-dropdown-panel:not([hidden]) {
+		transform-origin: top right;
+		animation: ffc-dropdown-in var(--dur-base) var(--ease-out-soft);
+	}
+
+	@keyframes ffc-dropdown-in {
+		from {
+			opacity: 0;
+			transform: translateY(-8px) scale(0.97);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
 	.dropdown-grid {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
@@ -386,6 +405,24 @@ const hubLinks = [
 			left: 50%;
 			transform: translateX(-50%);
 			padding: var(--space-md);
+		}
+
+		/* Centered variant keeps the translateX(-50%) offset throughout the open
+		   animation so it doesn't jump off-screen while unfolding. */
+		.nav-dropdown-panel:not([hidden]) {
+			transform-origin: top center;
+			animation-name: ffc-dropdown-in-center;
+		}
+
+		@keyframes ffc-dropdown-in-center {
+			from {
+				opacity: 0;
+				transform: translateX(-50%) translateY(-8px) scale(0.97);
+			}
+			to {
+				opacity: 1;
+				transform: translateX(-50%) translateY(0) scale(1);
+			}
 		}
 
 		.theme-toggle {
