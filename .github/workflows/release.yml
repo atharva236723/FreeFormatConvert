@@ -34,8 +34,29 @@ jobs:
           cd dist
           zip -r "../freeformatconvert-${GITHUB_REF_NAME}.zip" .
 
+      - name: Extract release notes from CHANGELOG
+        run: |
+          # Pull the section for this tag's version (e.g. tag v1.2.0 -> "## [1.2.0]")
+          # out of CHANGELOG.md, dropping the link-reference footer lines.
+          awk -v ver="${GITHUB_REF_NAME#v}" '
+            $0 ~ "^## \\[" ver "\\]" {flag=1; next}
+            flag && /^## \[/ {exit}
+            flag && /^\[.*\]: http/ {next}
+            flag {print}
+          ' CHANGELOG.md > release-notes.md
+          if [ -s release-notes.md ]; then
+            echo "Using CHANGELOG section for ${GITHUB_REF_NAME}:"
+            cat release-notes.md
+          else
+            echo "No CHANGELOG entry for ${GITHUB_REF_NAME}; relying on auto-generated notes."
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # Curated notes from CHANGELOG on top; the auto-generated commit
+          # list is appended below it.
+          body_path: release-notes.md
+          append_body: true
           generate_release_notes: true
           files: freeformatconvert-*.zip
