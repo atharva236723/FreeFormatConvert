@@ -27,9 +27,41 @@ interface Props {
 }
 
 const { title, description, canonical, heading, subtitle, relatedTitle = 'Related tools', related = [] } = Astro.props;
+
+// Absolute URLs for structured data (Google needs fully-qualified URLs in JSON-LD).
+const site = Astro.site?.href.replace(/\/$/, '') ?? '';
+const pageUrl = new URL(canonical, Astro.site).href;
+
+// SoftwareApplication marks each tool as a standalone free tool (rich-result eligibility);
+// BreadcrumbList produces the "site › tools › merge-pdf" trail Google shows under the title.
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'SoftwareApplication',
+			name: heading,
+			url: pageUrl,
+			applicationCategory: 'UtilitiesApplication',
+			operatingSystem: 'Any (runs in the browser)',
+			description,
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+		},
+		{
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{ '@type': 'ListItem', position: 1, name: 'Home', item: `${site}/` },
+				{ '@type': 'ListItem', position: 2, name: 'Tools', item: `${site}/tools` },
+				{ '@type': 'ListItem', position: 3, name: heading, item: pageUrl },
+			],
+		},
+	],
+};
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
+	<Fragment slot="head">
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+	</Fragment>
 	<NavBar />
 	<main>
 		<section class="hero">

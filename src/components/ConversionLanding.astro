@@ -52,6 +52,10 @@ const isPair = Boolean(presetSourceLabel && presetTargetLabel);
 const src = presetSourceLabel ?? '';
 const tgt = presetTargetLabel ?? '';
 
+// Absolute URLs for structured data (Google needs fully-qualified URLs in JSON-LD).
+const site = Astro.site?.href.replace(/\/$/, '') ?? '';
+const pageUrl = new URL(canonical, Astro.site).href;
+
 const faqs = isPair
 	? [
 			{
@@ -73,24 +77,49 @@ const faqs = isPair
 		]
 	: [];
 
-const faqStructuredData = isPair
+// A single @graph per pair page: SoftwareApplication (marks the page as a standalone free
+// tool → rich-result eligibility), BreadcrumbList (the "site › png-to-jpg" trail Google shows
+// under the title), and the FAQPage. Keep the FAQPage's questions in lockstep with the visible
+// accordion below — Google's policy requires the schema to match on-page content.
+const structuredData = isPair
 	? {
 			'@context': 'https://schema.org',
-			'@type': 'FAQPage',
-			mainEntity: faqs.map((f) => ({
-				'@type': 'Question',
-				name: f.q,
-				acceptedAnswer: { '@type': 'Answer', text: f.a },
-			})),
+			'@graph': [
+				{
+					'@type': 'SoftwareApplication',
+					name: `${src} to ${tgt} Converter`,
+					url: pageUrl,
+					applicationCategory: 'UtilitiesApplication',
+					operatingSystem: 'Any (runs in the browser)',
+					description,
+					offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+				},
+				{
+					'@type': 'BreadcrumbList',
+					itemListElement: [
+						{ '@type': 'ListItem', position: 1, name: 'Home', item: `${site}/` },
+						{ '@type': 'ListItem', position: 2, name: 'Conversions', item: `${site}/conversions` },
+						{ '@type': 'ListItem', position: 3, name: `${src} to ${tgt}`, item: pageUrl },
+					],
+				},
+				{
+					'@type': 'FAQPage',
+					mainEntity: faqs.map((f) => ({
+						'@type': 'Question',
+						name: f.q,
+						acceptedAnswer: { '@type': 'Answer', text: f.a },
+					})),
+				},
+			],
 		}
 	: null;
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
 	{
-		faqStructuredData && (
+		structuredData && (
 			<Fragment slot="head">
-				<script is:inline type="application/ld+json" set:html={JSON.stringify(faqStructuredData)} />
+				<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
 			</Fragment>
 		)
 	}
@@ -99,10 +128,6 @@ const faqStructuredData = isPair
 		<section class="hero">
 			<div class="hero-bg" aria-hidden="true"></div>
 			<div class="container hero-inner">
-				<span class="hero-badge">
-					<span class="hero-badge-dot"></span>
-					100% private — converted in your browser, never uploaded
-				</span>
 				<h1 class="hero-title">{heading}</h1>
 				<p class="hero-sub">{subtitle}</p>
 				<div class="hero-converter">
@@ -284,40 +309,6 @@ const faqStructuredData = isPair
 
 	.hero-inner {
 		text-align: center;
-	}
-
-	.hero-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--space-xs);
-		font-size: var(--text-body-sm-size);
-		font-weight: 500;
-		color: var(--color-body);
-		background: var(--color-canvas);
-		border: 1px solid var(--color-hairline);
-		border-radius: var(--radius-pill);
-		padding: 6px 14px 6px 12px;
-		margin-bottom: var(--space-lg);
-		box-shadow: var(--shadow-level-2);
-	}
-
-	.hero-badge-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--color-success);
-		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
-		animation: badge-pulse 2.4s ease-out infinite;
-	}
-
-	@keyframes badge-pulse {
-		0% {
-			box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 55%, transparent);
-		}
-		70%,
-		100% {
-			box-shadow: 0 0 0 6px transparent;
-		}
 	}
 
 	.hero-title {
