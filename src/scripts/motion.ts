@@ -100,18 +100,24 @@ function setupSmoothAnchors(): void {
 	});
 }
 
+/** Signal the inline failsafe that motion booted, so it doesn't force-reveal. */
+function markReady(): void {
+	(window as unknown as { __ffcMotionReady?: boolean }).__ffcMotionReady = true;
+}
+
 function init(): void {
 	// If motion is reduced, don't hide/animate anything — reveal immediately.
 	if (reduceMotion) {
 		document.documentElement.classList.add('motion-failsafe');
+		markReady();
 		return;
 	}
 	setupReveal();
 	setupSmoothAnchors();
+	// Only mark ready once setup has actually completed — if setupReveal throws,
+	// the flag stays unset so the 2.5s failsafe still force-reveals the content.
+	markReady();
 }
-
-// Signal the inline failsafe that motion booted, so it doesn't force-reveal.
-(window as unknown as { __ffcMotionReady?: boolean }).__ffcMotionReady = true;
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', init, { once: true });

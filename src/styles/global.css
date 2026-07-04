@@ -126,7 +126,10 @@ textarea {
 	will-change: opacity, transform;
 }
 
-.js-motion main > section:not(.hero).is-revealed,
+/* The reveal selector must mirror the hide selector's specificity (note the
+   matching `:not([data-reveal-container])`) — otherwise the hide rule above wins
+   even after `.is-revealed` is added, leaving plain sections stuck at opacity 0. */
+.js-motion main > section:not(.hero):not([data-reveal-container]).is-revealed,
 .js-motion [data-reveal].is-revealed {
 	opacity: 1;
 	transform: none;
