@@ -32,6 +32,12 @@
 
 ---
 
+<div align="center">
+
+<img src="docs/screenshot.png" alt="Free Format Convert — popular conversions and feature highlights" width="90%">
+
+</div>
+
 ## ✨ Why it's different
 
 Most online converters upload your file to a server. This one doesn't — there is **no backend at all**. Images, audio, video, documents and ebooks are all decoded, transcoded and re-encoded locally using the Canvas API, [ffmpeg.wasm](https://ffmpegwasm.netlify.app/), and a handful of pure-JS document libraries.
