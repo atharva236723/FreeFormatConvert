@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a new conversion, tool, or improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem or use case?
+      description: What are you trying to do that the app doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: The conversion, tool, or change you'd like to see.
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      description: This app is 100% client-side — no server ever touches your files.
+      options:
+        - label: I understand this feature must run entirely in the browser (no server upload).
+          required: true

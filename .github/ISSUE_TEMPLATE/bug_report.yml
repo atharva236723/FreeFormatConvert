@@ -1,0 +1,52 @@
+name: Bug report
+description: Report something that isn't working correctly.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Since every conversion runs
+        **in your browser**, the browser and OS matter a lot — please fill those in.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected instead.
+      placeholder: Converting a HEIC to JPG shows "engine load failed"...
+    validations:
+      required: true
+  - type: input
+    id: conversion
+    attributes:
+      label: Conversion / tool
+      description: Which page or conversion pair? (e.g. `/heic-to-jpg`, Compress Video)
+      placeholder: /heic-to-jpg
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Drop a file '...'
+        3. Click Convert
+        4. See error
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & OS
+      description: Include versions. The wasm/Canvas paths behave differently across browsers.
+      placeholder: Chrome 126 on Windows 11 / Safari 16 on iOS
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Any errors from the browser devtools console. Automatically formatted as code.
+      render: shell
+    validations:
+      required: false
