@@ -14,7 +14,7 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "astro": "^7.0.4",
+    "astro": "^7.0.6",
     "docx": "^9.7.1",
     "heic2any": "^0.0.4",
     "jspdf": "^4.2.1",
