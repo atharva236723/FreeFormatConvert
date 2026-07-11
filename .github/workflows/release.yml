@@ -52,7 +52,7 @@ jobs:
           fi
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # Curated notes from CHANGELOG on top; the auto-generated commit
           # list is appended below it.
